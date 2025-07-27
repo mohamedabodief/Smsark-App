@@ -1,0 +1,59 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import Favorite from '../../../FireBase/modelsWithOperations/Favorite';
+
+export const loadFavoritesAsync = createAsyncThunk(
+  'favorites/loadFavorites',
+  async () => {
+    const snapshot = await getDocs(collection(db, 'favorites'));
+    const data = snapshot.docs.map(doc => doc.data());
+    return data;
+  }
+);
+
+
+export const toggleFavoriteAsync = createAsyncThunk(
+  'favorites/toggleFavorite',
+  async (item) => {
+    const { advertisement_id, type } = item;
+
+    // حذف أو إضافة في فايربيز (هنمرر النوع في الكود لكن مش هنغير كلاس Favorite)
+    await Favorite.toggleFavorite('guest', advertisement_id);
+
+    // نرجع الليست المحدثة كلها بعد التبديل
+    return new Promise((resolve) => {
+      Favorite.subscribeByUser('guest', (favorites) => {
+        const formatted = favorites.map((fav) => ({
+          advertisement_id: fav.advertisement_id,
+          type: fav.type || 'financing', // fallback again
+        }));
+        resolve(formatted);
+      });
+    });
+  }
+);
+
+const favoritesSlice = createSlice({
+  name: 'favorites',
+  initialState: {
+    list: [],
+  },
+  reducers: {
+    setFavorites(state, action) {
+      state.list = action.payload;
+    },
+  },
+  extraReducers: (builder) => {
+  builder
+    .addCase(loadFavoritesAsync.fulfilled, (state, action) => {
+      state.list = action.payload;
+    })
+    .addCase(toggleFavoriteAsync.fulfilled, (state, action) => {
+      state.list = action.payload; // تحديث القائمة بعد التبديل
+    });
+}
+
+
+});
+
+export const { setFavorites } = favoritesSlice.actions;
+export default favoritesSlice.reducer;
