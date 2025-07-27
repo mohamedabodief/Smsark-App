@@ -10,60 +10,69 @@ import {
   where,
   onSnapshot,
 } from 'firebase/firestore';
-import { db, Timestamp } from '../firebaseConfig';
+import { db } from '../firebaseConfig';
 
-export default class RealEstateDeveloperAdvertisement {
+export default class ClientAdvertisement {
   constructor(data) {
-    this.id = data.id || doc(collection(db, 'RealEstateDeveloperAdvertisement')).id;
+    this.id = data.id || doc(collection(db, 'ClientAdvertisements')).id;
     this.title = data.title;
     this.description = data.description;
     this.price = data.price;
     this.images = data.images || [];
     this.location = data.location;
+    this.governorate = data.governorate;
+    this.city = data.city;
     this.space = data.space;
     this.developer_id = data.developer_id;
-    this.created_at = data.created_at || Timestamp.now();
+    this.created_at = data.created_at;
     this.expiry_days = data.expiry_days;
     this.is_active = data.is_active ?? true;
-    this.status = data.status || 'pending'; // pending | approved | rejected
+    this.status = data.status || 'pending';
     this.rejection_reason = data.rejection_reason || '';
     this.admin_note = data.admin_note || '';
+    this.type = data.type;
+    this.ad_type = data.ad_type;
+    this.reviewStatus = data.reviewStatus || 'pending';
   }
 
   async save() {
-    const docRef = doc(db, 'RealEstateDeveloperAdvertisement', this.id);
+    const docRef = doc(db, 'ClientAdvertisements', this.id);
     await setDoc(docRef, { ...this });
   }
 
   async update(data) {
-    const docRef = doc(db, 'RealEstateDeveloperAdvertisement', this.id);
+    const docRef = doc(db, 'ClientAdvertisements', this.id);
     await updateDoc(docRef, data);
   }
 
   async delete() {
-    const docRef = doc(db, 'RealEstateDeveloperAdvertisement', this.id);
+    const docRef = doc(db, 'ClientAdvertisements', this.id);
     await deleteDoc(docRef);
   }
 
   static async getById(id) {
-    const docRef = doc(db, 'RealEstateDeveloperAdvertisement', id);
+    const docRef = doc(db, 'ClientAdvertisements', id);
     const snapshot = await getDoc(docRef);
     if (!snapshot.exists()) return null;
-    return new RealEstateDeveloperAdvertisement(snapshot.data());
+    return new ClientAdvertisement({ id: snapshot.id, ...snapshot.data() });
   }
 
   static subscribeAll(callback) {
-    const q = query(collection(db, 'RealEstateDeveloperAdvertisement'));
+    const q = query(collection(db, 'ClientAdvertisements'));
     return onSnapshot(q, (snapshot) => {
-      const ads = snapshot.docs.map((doc) => new RealEstateDeveloperAdvertisement(doc.data()));
+      const ads = snapshot.docs.map((doc) =>
+        new ClientAdvertisement({ id: doc.id, ...doc.data() })
+      );
       callback(ads);
     });
   }
 
   static async getAll() {
-    const q = query(collection(db, 'RealEstateDeveloperAdvertisement'));
+    const q = query(collection(db, 'ClientAdvertisements'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => new RealEstateDeveloperAdvertisement(doc.data()));
+    return snapshot.docs.map((doc) =>
+      new ClientAdvertisement({ id: doc.id, ...doc.data() })
+    );
   }
 
   async approveAd(admin_note = '') {
@@ -80,11 +89,13 @@ export default class RealEstateDeveloperAdvertisement {
 
   static subscribeByDeveloperId(developerId, callback) {
     const q = query(
-      collection(db, 'RealEstateDeveloperAdvertisement'),
+      collection(db, 'ClientAdvertisements'),
       where('developer_id', '==', developerId)
     );
     return onSnapshot(q, (snapshot) => {
-      const ads = snapshot.docs.map((doc) => new RealEstateDeveloperAdvertisement(doc.data()));
+      const ads = snapshot.docs.map((doc) =>
+        new ClientAdvertisement({ id: doc.id, ...doc.data() })
+      );
       callback(ads);
     });
   }
