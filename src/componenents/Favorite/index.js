@@ -7,7 +7,7 @@ import FinancingCard from '../../Homeparts/FinancingCard';
 import DevelopmentCard from '../../Homeparts/DevelopmentCard';
 import Layout from '../../Layout';
 import { useFocusEffect } from '@react-navigation/native';
-
+import FavoriteButton from '../../Homeparts/FavoriteButton';
 
 const FavoritesScreen = () => {
   const dispatch = useDispatch();
@@ -47,6 +47,7 @@ useFocusEffect(
           <Text style={styles.empty}>لا يوجد إعلانات مفضلة</Text>
         }
       />
+      {/* <FavoriteButton/> */}
     </View>
     </Layout>
   );
@@ -72,3 +73,5 @@ const styles = StyleSheet.create({
 });
 
 export default FavoritesScreen;
+
+// stop_________________________________________

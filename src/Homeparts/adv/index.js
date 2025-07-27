@@ -10,7 +10,7 @@ export default function Advertise() {
   
     const fetchUserType = async () => {
      
-      const user = { id: 'test-user', type_of_user: 'financer' }; // client | developer | financer | admin | organization
+      const user = { id: 'test-user', type_of_user: 'developer' }; // client | developer | financer | admin | organization
       if (user) {
         setUserType(user.type_of_user);
       }
@@ -25,7 +25,7 @@ export default function Advertise() {
       title: 'عميل؟',
       description: 'استكشف أفضل العقارات المتاحة بسهولة ويسر.',
       type: 'client',
-      route: 'AddClientAds',
+      route: 'AddAds',
     },
     {
       icon: 'home-city', 

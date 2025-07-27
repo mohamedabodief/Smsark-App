@@ -12,21 +12,22 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function FinancingCard({ item }) {
     const navigation = useNavigation();
+    // console.log(item);
     return (
         <TouchableOpacity style={styles.card}
-            onPress={() => navigation.navigate('FinancingDetails', { item })}>
+            onPress={() => navigation.navigate('detailsForFinancingAds', { item })}>
             <Image
                 source={item.image ? { uri: item.image } : require('../../assets/1.webp')}
                 style={styles.image}
             />
             <View style={styles.content}>
                 <Text style={styles.price}>
-                    {item.price_start_from ? item.price_start_from.toLocaleString() : '—'} -
-                    {item.price_end_to ? item.price_end_to.toLocaleString() : '—'} ج.م
+                    {item.start_limit ? item.start_limit.toLocaleString() : '—'} -
+                    {item.end_limit ? item.end_limit.toLocaleString() : '—'} ج.م
                 </Text>
                 <Text style={styles.name}>{item.org_name}</Text>
                 <Text style={styles.model}>{item.financing_model}</Text>
-                console.log(item);
+                
             </View>
             <FavoriteButton id={item.id} type="financing" />
 
@@ -66,3 +67,6 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
 });
+
+
+// stop_________________________________________
