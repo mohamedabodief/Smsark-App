@@ -37,10 +37,11 @@ function AppNavigator() {
         <Drawer.Screen name="AddClientAds" component={AddAdForm} />
         <Drawer.Screen name="AddDeveloperAds" component={AddAdvDev} />
         <Drawer.Screen name="AddFinancingAds" component={AddAdFin} />
-
         <Drawer.Screen name="About" component={AboutUsScreen} />
         <Drawer.Screen name="Favorite" component={FavoritesScreen} />
         <Drawer.Screen name="profile" component={ProfileScreen} />
+
+        
 
       </Drawer.Navigator>
     </NavigationContainer>
