@@ -1,0 +1,288 @@
+import React, { useState } from 'react';
+import {
+  View,
+  TextInput,
+  Alert,
+  StyleSheet,
+  ImageBackground,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
+import User from '../../FireBase/modelsWithOperations/User';
+
+export default function ClientDetailsScreen({ route }) {
+const { uid } = route.params;
+  const navigation = useNavigation();
+
+  const [cli_name, setName] = useState('');
+  const [phone, setPhoneNumber] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [governorate, setGovernorate] = useState('');
+  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
+
+  // Validation state for each field
+  const [errors, setErrors] = useState({
+    cli_name: '',
+    phone: '',
+    age: '',
+    gender: '',
+    governorate: '',
+    city: '',
+    address: '',
+  });
+
+  // List of gender options for the picker
+  const genderOptions = [
+    { label: 'اختر النوع', value: '' },
+    { label: 'ذكر', value: 'male' },
+    { label: 'أنثى', value: 'female' },
+  ];
+
+  // Validate all fields
+  const validateForm = () => {
+    const newErrors = {
+      cli_name: cli_name.trim() ? '' : 'الاسم مطلوب',
+      phone: phone.trim() ? '' : 'رقم الهاتف مطلوب',
+      age: age.trim() ? '' : 'السن مطلوب',
+      gender: gender.trim() ? '' : 'النوع مطلوب',
+      governorate: governorate.trim() ? '' : 'المحافظة مطلوبة',
+      city: city.trim() ? '' : 'المدينة أو القرية مطلوبة',
+      address: address.trim() ? '' : 'العنوان بالتفصيل مطلوب',
+    };
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every((error) => !error);
+  };
+
+  const allFieldsFilled =
+    cli_name.trim() &&
+    phone.trim() &&
+    age.trim() &&
+    gender.trim() &&
+    governorate.trim() &&
+    city.trim() &&
+    address.trim();
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    try {
+      const user = new User({
+        uid,
+        type_of_user: 'client',
+        cli_name,
+        phone,
+        age,
+        gender,
+        governorate,
+        city,
+        address,
+        profile_completed: true,
+        created_at: new Date().toISOString(),
+        fcm_token: '', 
+      });
+
+      await user.saveToFirestore();
+      Alert.alert('تم', 'تم حفظ البيانات بنجاح', [
+        {
+          text: 'موافق',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
+    } catch (err) {
+      console.error('Error saving to Firestore:', err);
+      Alert.alert('خطأ', err.message);
+    }
+  };
+
+
+  return (
+    <ImageBackground
+      source={require('../../assets/bg-sign.jpg')}
+      style={styles.background}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.container}>
+          <Text style={{ fontSize: 25, textAlign: 'center', fontWeight: 'bold', color: '#6E00FE', marginBottom: 20 }}>
+            إنشاء حساب جديد
+          </Text>
+          <Text style={styles.label}>الاسم *</Text>
+          <TextInput
+            placeholder="الاسم"
+            value={cli_name}
+            onChangeText={setName}
+            style={[styles.input, errors.cli_name ? styles.inputError : null]}
+          />
+          {errors.cli_name ? <Text style={styles.errorText}>{errors.cli_name}</Text> : null}
+
+          <Text style={styles.label}>رقم الهاتف *</Text>
+          <TextInput
+            placeholder="رقم الهاتف"
+            value={phone}
+            onChangeText={setPhoneNumber}
+            style={[styles.input, errors.phone ? styles.inputError : null]}
+            keyboardType="phone-pad"
+          />
+          {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
+
+          <Text style={styles.label}>السن *</Text>
+          <TextInput
+            placeholder="السن"
+            value={age}
+            onChangeText={setAge}
+            style={[styles.input, errors.age ? styles.inputError : null]}
+            keyboardType="numeric"
+          />
+          {errors.age ? <Text style={styles.errorText}>{errors.age}</Text> : null}
+
+          <Text style={styles.label}>النوع *</Text>
+          <View style={[styles.pickerContainer, errors.gender ? styles.inputError : null]}>
+            <Picker
+              selectedValue={gender}
+              onValueChange={(itemValue) => setGender(itemValue)}
+              style={styles.picker}
+              itemStyle={{ color: '#000', fontSize: 16, marginTop: -20 }}
+            >
+              {genderOptions.map((option) => (
+                <Picker.Item key={option.value} label={option.label} value={option.value} />
+              ))}
+            </Picker>
+          </View>
+          {errors.gender ? <Text style={styles.errorText}>{errors.gender}</Text> : null}
+
+          <Text style={styles.label}>المحافظة *</Text>
+          <TextInput
+            placeholder="المحافظة"
+            value={governorate}
+            onChangeText={setGovernorate}
+            style={[styles.input, errors.governorate ? styles.inputError : null]}
+          />
+          {errors.governorate ? <Text style={styles.errorText}>{errors.governorate}</Text> : null}
+
+          <Text style={styles.label}>المدينة / القرية *</Text>
+          <TextInput
+            placeholder="المدينة أو القرية"
+            value={city}
+            onChangeText={setCity}
+            style={[styles.input, errors.city ? styles.inputError : null]}
+          />
+          {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
+
+          <Text style={styles.label}>العنوان بالتفصيل *</Text>
+          <TextInput
+            placeholder="العنوان بالتفصيل"
+            value={address}
+            onChangeText={setAddress}
+            style={[styles.input, errors.address ? styles.inputError : null]}
+          />
+          {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>رجوع</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                { backgroundColor: allFieldsFilled ? '#6E00FE' : '#ccc' },
+              ]}
+              onPress={handleSave}
+              disabled={!allFieldsFilled}
+            >
+              <Text style={styles.submitButtonText}>إنهاء التسجيل</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 16,
+  },
+  container: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
+  },
+  label: {
+    marginBottom: 4,
+    fontWeight: 'bold',
+    color: '#6E00FE',
+    direction: 'rtl',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#6E00FE',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#6E00FE',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  picker: {
+    height: 5,
+    paddingBottom: 55,
+    color: '#000',
+  },
+  inputError: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  backButton: {
+    backgroundColor: '#aaa',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  submitButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});
