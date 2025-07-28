@@ -6,19 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider, useDispatch } from 'react-redux';
 import { store } from './src/redux/store';
 import { loadFavoritesAsync } from './src/redux/favoritesSlice';
-
-// Main Components
-import Home from './src/componenents/Home';
-import DrawerContent from './src/componenents/DrawerContent';
-import FavoritesScreen from './src/componenents/Favorite';
-import AboutUsScreen from './src/componenents/aboutUs';
-import ProfileScreen from './src/componenents/profile';
-
-// Form Components
-import AddAdForm from './src/componenents/ClientAddAdsForm';
-import AddAdvDev from './src/componenents/devAddAdsForm';
-import AddAdFin from './src/componenents/FinAddAdsForm';
-
 // Screen Components
 import DisplayInfoAddClientAds from './screens/displayInfoAddClientAds.jsx';
 import AddDeveloperAdsForm from './screens/AddDeveloperAds.jsx';
@@ -30,9 +17,29 @@ import SellScreen from './screens/sell.jsx';
 import DeveloperScreen from './screens/developer.jsx';
 import FinancingScreen from './screens/financing.jsx';
 import SearchPage from './screens/SearchPage.jsx';
+// Main Components
+import Home from './src/componenents/Home';
+import DrawerContent from './src/componenents/DrawerContent';
+import FavoritesScreen from './src/componenents/Favorite';
+import AboutUsScreen from './src/componenents/aboutUs';
 
-const Drawer = createDrawerNavigator();
+// Form Components
+import AddAdForm from './src/componenents/ClientAddAdsForm';
+import AddAdvDev from './src/componenents/devAddAdsForm';
+import AddAdFin from './src/componenents/FinAddAdsForm';
+import ProfileScreen from './src/componenents/profile';
+import DetailsForFinancingAds from './src/componenents/DetailsForFinancingAds/index.js';
+import DetailsForDevelopment from './src/componenents/DetailsForDevelopmentAds/index.js';
+import DetailsForClient from './src/componenents/DetailsForClient/index.js';
+import SellPage from './screens/sell.jsx';
+import DeveloperPage from './screens/developer.jsx';
+import FinancingPage from './screens/financing.jsx';
+import ModernDeveloperForm from './screens/AddDeveloperAds.jsx';
+// import seed from './src/Homeparts/addfakedata/index.js';
+// import RealEstateDeveloperAdvertisement from './FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement.js';
+
 const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
 
 // Stack Navigator for Form-related screens
 function FormStackNavigator() {
@@ -50,7 +57,7 @@ function FormStackNavigator() {
       }}
     >
       <Stack.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} />
-      <Stack.Screen name="AddDeveloperAdsForm" component={AddDeveloperAdsForm} />
+      <Stack.Screen name="AddDeveloperAds" component={ModernDeveloperForm} />
       <Stack.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} />
       <Stack.Screen name="FinancingRequest" component={FinancingRequest} />
       <Stack.Screen name="DisplayFinancingInfo" component={DisplayDataScreenFinicingRequst} />
@@ -75,11 +82,12 @@ function MainStackNavigator() {
       }}
     >
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Sell" component={SellScreen} />
-      <Stack.Screen name="Developer" component={DeveloperScreen} />
-      <Stack.Screen name="Financing" component={FinancingScreen} />
+      <Stack.Screen name="Sell" component={SellPage} />
+      <Stack.Screen name="Developer" component={DeveloperPage} />
+      <Stack.Screen name="Financing" component={FinancingPage} />
       <Stack.Screen name="Search" component={SearchPage} />
     </Stack.Navigator>
+    
   );
 }
 
@@ -114,7 +122,14 @@ function AppNavigator() {
             drawerLabel: 'الرئيسية'
           }} 
         />
-        
+       <Drawer.Screen 
+          name="Search" 
+          component={SearchPage}
+          options={{ 
+            title: 'بحث',
+            drawerLabel: 'بحث'
+          }} 
+        />
         {/* Form Navigation */}
         <Drawer.Screen 
           name="FormStack" 
@@ -124,11 +139,10 @@ function AppNavigator() {
             drawerLabel: 'النماذج والإعلانات'
           }} 
         />
-        
         {/* Direct Drawer Screens */}
         <Drawer.Screen 
           name="AddClientAds" 
-          component={AddAdForm}
+          component={ModernRealEstateForm}
           options={{ 
             title: 'إضافة إعلان عميل',
             drawerLabel: 'إضافة إعلان عميل'
@@ -136,7 +150,7 @@ function AppNavigator() {
         />
         <Drawer.Screen 
           name="AddDeveloperAds" 
-          component={AddAdvDev}
+          component={ModernDeveloperForm}
           options={{ 
             title: 'إضافة إعلان مطور',
             drawerLabel: 'إضافة إعلان مطور'
@@ -167,13 +181,22 @@ function AppNavigator() {
           }} 
         />
         <Drawer.Screen 
-          name="Profile" 
+          name="profile" 
           component={ProfileScreen}
           options={{ 
             title: 'الملف الشخصي',
             drawerLabel: 'الملف الشخصي'
           }} 
         />
+        <Drawer.Screen name="Home" component={Home} />
+        <Drawer.Screen name="AddAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل' }} />
+        <Drawer.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} options={{ title: 'مراجعة بيانات العميل' }} />
+        <Drawer.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} options={{ title: 'مراجعة بيانات المطور' }} />
+        <Drawer.Screen name="FinancingRequest" component={FinancingRequest} options={{ title: 'طلب تمويل' }} />
+        <Drawer.Screen name="displayInfo" component={DisplayDataScreenFinicingRequst} />
+        <Drawer.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
+        <Drawer.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
+        <Drawer.Screen name="ClientDetails" component={DetailsForClient} />
       </Drawer.Navigator>
     </NavigationContainer>
   );

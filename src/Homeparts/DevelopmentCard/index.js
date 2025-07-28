@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,26 +8,56 @@ import {
     Dimensions,
 } from 'react-native';
 import FavoriteButton from '../FavoriteButton';
+import RealEstateDeveloperAdvertisement from '../../../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 import { useNavigation } from '@react-navigation/native';
+
 export default function DevelopmentCard({ item }) {
     const navigation = useNavigation();
+    const [ad, setAd] = useState(item); // استخدام item كقيمة افتراضية
+
+    useEffect(() => {
+        const fetchAd = async () => {
+            try {
+                if (!item?.id) {
+                    console.error('معرف الإعلان غير موجود:', item);
+                    return;
+                }
+                const fetchedAd = await RealEstateDeveloperAdvertisement.getById(item.id);
+                if (fetchedAd) {
+                    setAd(fetchedAd);
+                }
+            } catch (error) {
+                console.error('خطأ في جلب بيانات الإعلان:', error);
+            }
+        };
+        fetchAd();
+    }, [item?.id]);
+
+    if (!ad) {
+        return (
+            <View style={styles.card}>
+                <Text>خطأ: لا توجد بيانات للإعلان</Text>
+            </View>
+        );
+    }
+
     return (
         <TouchableOpacity style={styles.card}
             onPress={() => navigation.navigate('DevelopmentDetails', { item })}>
             <Image
-                source={item.image ? { uri: item.image } : require('../../assets/1.webp')}
+                source={ad.images && ad.images.length > 0 ? { uri: ad.images[0] } : require('../../assets/1.webp')}
                 style={styles.image}
             />
 
             <View style={styles.content}>
                 <Text style={styles.price}>
-                    {item.price_start_from ? item.price_start_from.toLocaleString() : '—'} -
-                    {item.price_end_to ? item.price_end_to.toLocaleString() : '—'} ج.م
+                    {ad.price_start_from ? ad.price_start_from.toLocaleString() : '—'} -
+                    {ad.price_end_to ? ad.price_end_to.toLocaleString() : '—'} ج.م
                 </Text>
-                <Text style={styles.name}>{item.title}</Text>
-                <Text style={styles.model}>{item.developer_name}</Text>
+                <Text style={styles.name}>{ad.developer_name}</Text>
+                <Text style={styles.model}>{ad.developer_name}</Text>
             </View>
-            <FavoriteButton id={item.advertisement_id} type="development" />
+            <FavoriteButton id={ad.id} type="development" />
         </TouchableOpacity>
     );
 }
@@ -64,3 +94,6 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
 });
+
+
+// stop_________________________________________

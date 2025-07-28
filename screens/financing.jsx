@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 150,
     justifyContent: 'center',
   },
   overlay: {

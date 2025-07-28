@@ -29,8 +29,12 @@ const PACKAGE_INFO = {
 };
 
 class RealEstateDeveloperAdvertisement {
+  
   #id = null;
-
+  static async create(adData) {
+    const adsCollection = collection(firestore, 'real_estate_developer_ads');
+    await addDoc(adsCollection, adData);
+  }
   constructor(data) {
     // تم تجاهل فحص تسجيل الدخول
     // const currentUser = auth.currentUser;
@@ -42,6 +46,7 @@ class RealEstateDeveloperAdvertisement {
     if (!this.#id) {
       console.error('RealEstateDeveloperAdvertisement: id is missing in constructor data:', data);
     }
+    
     this.developer_name = data.developer_name;
     this.description = data.description;
     this.project_types = data.project_types;

@@ -41,7 +41,7 @@ const SimpleHeroSlider = () => {
     <View style={styles.container}>
       {ads.length > 0 && (
         <Image
-          source={{ uri: ads[index].image }}
+          source={ads[index].image ? { uri: ads[index].image } : require('../../assets/background.jpg')}
           style={styles.image}
           resizeMode="cover"
         />
