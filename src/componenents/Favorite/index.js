@@ -18,44 +18,55 @@ const FavoritesScreen = () => {
     dispatch(loadFavoritesAsync());
   }, []);
 
-useFocusEffect(
-  React.useCallback(() => {
-    dispatch(loadFavoritesAsync());
-  }, [])
-);
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(loadFavoritesAsync());
+    }, [])
+  );
 
 
   const renderItem = ({ item }) => {
-  // لو فيه org_name → إعلان تمويلي
-  if (item.org_name !== undefined) {
-    return <FinancingCard item={item} />;
-  }
+     const { advertisement_id } = item;
+    // لو فيه org_name → إعلان تمويلي
+    if (item.org_name !== undefined) {
+      return (
+        <View style={styles.cardWrapper}>
+          <FavoriteButton id={advertisement_id} />
+          <FinancingCard item={item} />
+        </View>
+      );
+    }
 
-  // لو فيه developer_name → إعلان مطور
-  if (item.developer_name !== undefined) {
-    return <DevelopmentCard item={item} />;
-  }
+    // لو فيه developer_name → إعلان مطور
+    if (item.developer_name !== undefined) {
+      return (
+        <View style={styles.cardWrapper}>
+          <FavoriteButton id={advertisement_id} />
+          <DevelopmentCard item={item} />
+        </View>
+      );
+    }
 
-  // لو مش معروف → تجاهل
-  return null;
-};
+    // لو مش معروف → تجاهل
+    return null;
+  };
 
 
 
   return (
     <Layout>
-    <View style={styles.container}>
-      <Text style={styles.title}>إعلاناتك المفضلة</Text>
-      <FlatList
-        data={favorites}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItem}
-        ListEmptyComponent={
-          <Text style={styles.empty}>لا يوجد إعلانات مفضلة</Text>
-        }
-      />
-      {/* <FavoriteButton/> */}
-    </View>
+      <View style={styles.container}>
+        <Text style={styles.title}>إعلاناتك المفضلة</Text>
+        <FlatList
+          data={favorites}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+          ListEmptyComponent={
+            <Text style={styles.empty}>لا يوجد إعلانات مفضلة</Text>
+          }
+        />
+        {/* <FavoriteButton/> */}
+      </View>
     </Layout>
   );
 };
@@ -63,8 +74,12 @@ useFocusEffect(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 45,
     backgroundColor: '#fff',
+  },
+  cardWrapper: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 22,

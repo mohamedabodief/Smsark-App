@@ -34,25 +34,30 @@ export const loadFavoritesAsync = createAsyncThunk(
 
 export const toggleFavoriteAsync = createAsyncThunk(
   'favorites/toggleFavorite',
-  async (item) => {
-    const { advertisement_id, } = item;
+  async (item, { getState }) => {
+    const { advertisement_id } = item;
 
-    // حذف أو إضافة في فايربيز (هنمرر النوع في الكود لكن مش هنغير كلاس Favorite)
+    // تنفيذ التبديل في Firebase بدون انتظار البيانات الجديدة
     await Favorite.toggleFavorite('guest', advertisement_id);
 
-    // نرجع الليست المحدثة كلها بعد التبديل
-    return new Promise((resolve) => {
-      Favorite.subscribeByUser('guest', (favorites) => {
-        const formatted = favorites.map((fav) => ({
-          advertisement_id: fav.advertisement_id,
-          // type: fav.type || 'financing', // لازم النوع يرجع
-        }));
-        resolve(formatted);
-      });
-    });
+    // تحديث الحالة محليًا بناءً على الحالة الحالية
+    const state = getState();
+    const currentFavorites = state.favorites.list;
 
+    const isFavorite = currentFavorites.some(fav => fav.advertisement_id === advertisement_id);
+
+    let updatedFavorites;
+    if (isFavorite) {
+      updatedFavorites = currentFavorites.filter(fav => fav.advertisement_id !== advertisement_id);
+    } else {
+      // لو نوع الإعلان مش واضح هنا، ضيفه في الزر نفسه أو استخرج بياناته من المكان المعروض فيه
+      updatedFavorites = [...currentFavorites, item];
+    }
+
+    return updatedFavorites;
   }
 );
+
 
 const favoritesSlice = createSlice({
   name: 'favorites',

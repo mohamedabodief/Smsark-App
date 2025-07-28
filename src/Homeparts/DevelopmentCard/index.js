@@ -38,6 +38,7 @@ export default function DevelopmentCard({ item }) {
                 <Text style={styles.name}>{item.developer_name}</Text>
                 <Text style={styles.model}>{item.developer_name}</Text>
             </View>
+            
             <FavoriteButton id={item.id} type="development" />
         </TouchableOpacity>
     );
