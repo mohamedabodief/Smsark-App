@@ -26,13 +26,20 @@ useFocusEffect(
 
 
   const renderItem = ({ item }) => {
-  if (item.type === 'financing') {
-    return <FinancingCard item={{ ...item, type: 'financing' }} />;
-  } else if (item.type === 'development') {
-    return <DevelopmentCard item={{ ...item, type: 'development' }} />;
+  // لو فيه org_name → إعلان تمويلي
+  if (item.org_name !== undefined) {
+    return <FinancingCard item={item} />;
   }
+
+  // لو فيه developer_name → إعلان مطور
+  if (item.developer_name !== undefined) {
+    return <DevelopmentCard item={item} />;
+  }
+
+  // لو مش معروف → تجاهل
   return null;
 };
+
 
 
   return (

@@ -33,6 +33,46 @@ import DetailsForDevelopment from './src/componenents/DetailsForDevelopmentAds/i
 import DetailsForClient from './src/componenents/DetailsForClient/index.js';
 // import seed from './src/Homeparts/addfakedata/index.js';
 // import RealEstateDeveloperAdvertisement from './FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement.js';
+
+const Drawer = createDrawerNavigator();
+function AppNavigator() {
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    dispatch(loadFavoritesAsync());
+  }, [dispatch]);
+  
+  
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        drawerContent={(props) => <DrawerContent {...props} />}
+        screenOptions={{ headerShown: false }}
+        >
+        <Drawer.Screen name="Home" component={Home} />
+        {/* <Drawer.Screen name="AddClientAds" component={AddAdForm} /> */}
+        {/* <Drawer.Screen name="AddDeveloperAd" component={AddAdvDev} /> */}
+        {/* <Drawer.Screen name="AddFinancingAds" component={AddAdFin} /> */}
+        <Drawer.Screen name="About" component={AboutUsScreen} />
+        <Drawer.Screen name="Favorite" component={FavoritesScreen} />
+        <Drawer.Screen name="profile" component={ProfileScreen} />
+        <Drawer.Screen name="AddAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل' }} />
+        <Drawer.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} options={{ title: 'مراجعة بيانات العميل' }} />
+        <Drawer.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} options={{ title: 'إضافة إعلان مطور' }} />
+        <Drawer.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} options={{ title: 'مراجعة بيانات المطور' }} />
+        <Drawer.Screen name="FinancingRequest" component={FinancingRequest} options={{ title: 'طلب تمويل' }} />
+        <Drawer.Screen name="displayInfo" component={DisplayDataScreenFinicingRequst} />
+        <Drawer.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
+        <Drawer.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
+        <Drawer.Screen name="ClientDetails" component={DetailsForClient} />
+        
+        
+
+      </Drawer.Navigator>
+    </NavigationContainer>
+  );
+}
 export default function App() {
   const Stack = createNativeStackNavigator();
 
@@ -57,46 +97,8 @@ export default function App() {
 
   <Provider store={store}>
     <AppNavigator />
-  </Provider>)}
-const Drawer = createDrawerNavigator();
-function AppNavigator() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(loadFavoritesAsync());
-  }, [dispatch]);
-
-
-  return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        initialRouteName="Home"
-        drawerContent={(props) => <DrawerContent {...props} />}
-        screenOptions={{ headerShown: false }}
-      >
-        <Drawer.Screen name="Home" component={Home} />
-        {/* <Drawer.Screen name="AddClientAds" component={AddAdForm} /> */}
-        {/* <Drawer.Screen name="AddDeveloperAd" component={AddAdvDev} /> */}
-        {/* <Drawer.Screen name="AddFinancingAds" component={AddAdFin} /> */}
-        <Drawer.Screen name="About" component={AboutUsScreen} />
-        <Drawer.Screen name="Favorite" component={FavoritesScreen} />
-        <Drawer.Screen name="profile" component={ProfileScreen} />
-        <Drawer.Screen name="AddAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل' }} />
-        <Drawer.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} options={{ title: 'مراجعة بيانات العميل' }} />
-        <Drawer.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} options={{ title: 'إضافة إعلان مطور' }} />
-        <Drawer.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} options={{ title: 'مراجعة بيانات المطور' }} />
-        <Drawer.Screen name="FinancingRequest" component={FinancingRequest} options={{ title: 'طلب تمويل' }} />
-        <Drawer.Screen name="displayInfo" component={DisplayDataScreenFinicingRequst} />
-        <Drawer.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
-        <Drawer.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
-        <Drawer.Screen name="ClientDetails" component={DetailsForClient} />
-        
-        
-
-      </Drawer.Navigator>
-    </NavigationContainer>
-  );
-}
+  </Provider>)
+  }
 
 const styles = StyleSheet.create({
   container: {

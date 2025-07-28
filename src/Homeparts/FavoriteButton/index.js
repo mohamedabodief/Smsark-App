@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleFavoriteAsync, loadFavoritesAsync } from '../../redux/favoritesSlice';
 import { Ionicons } from '@expo/vector-icons';
 
-const FavoriteButton = ({ id, type }) => {
+const FavoriteButton = ({ id }) => {
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.favorites.list);
 
@@ -14,13 +14,13 @@ const FavoriteButton = ({ id, type }) => {
 
   const isFavorite = favorites.some(
   (fav) =>
-    fav.advertisement_id === id &&
-    (fav.type || 'financing') === (type || 'financing')
+    fav.advertisement_id === id 
+  // &&(fav.type || 'financing') === (type || 'financing')
 );
 
 
   const handleToggleFavorite = () => {
-    dispatch(toggleFavoriteAsync({ advertisement_id: id, type }));
+    dispatch(toggleFavoriteAsync({ advertisement_id: id }));
     // لا حاجة لإعادة loadFavorites هنا لأن toggleFavoriteAsync يعيدها
   };
 

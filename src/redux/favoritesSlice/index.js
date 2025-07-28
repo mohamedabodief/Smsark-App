@@ -10,16 +10,17 @@ export const loadFavoritesAsync = createAsyncThunk(
         const detailedFavorites = await Promise.all(
           favorites.map(async (fav) => {
             let data;
-            if (fav.type === 'financing') {
-              data = await FinancingAdvertisement.getById(fav.advertisement_id);
-            } else {
+            // نجرب كل نوع حتى نلاقي بيانات
+            data = await FinancingAdvertisement.getById(fav.advertisement_id);
+            if (!data) {
               data = await RealEstateDeveloperAdvertisement.getById(fav.advertisement_id);
             }
+
 
             return {
               ...data,
               advertisement_id: fav.advertisement_id,
-              type: fav.type || 'financing',
+              // type: fav.type || 'financing',
             };
           })
         );
@@ -34,7 +35,7 @@ export const loadFavoritesAsync = createAsyncThunk(
 export const toggleFavoriteAsync = createAsyncThunk(
   'favorites/toggleFavorite',
   async (item) => {
-    const { advertisement_id, type } = item;
+    const { advertisement_id, } = item;
 
     // حذف أو إضافة في فايربيز (هنمرر النوع في الكود لكن مش هنغير كلاس Favorite)
     await Favorite.toggleFavorite('guest', advertisement_id);
@@ -44,7 +45,7 @@ export const toggleFavoriteAsync = createAsyncThunk(
       Favorite.subscribeByUser('guest', (favorites) => {
         const formatted = favorites.map((fav) => ({
           advertisement_id: fav.advertisement_id,
-          type: fav.type || 'financing', // لازم النوع يرجع
+          // type: fav.type || 'financing', // لازم النوع يرجع
         }));
         resolve(formatted);
       });
