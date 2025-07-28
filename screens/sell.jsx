@@ -15,6 +15,7 @@ import SearchCard from './components/SearchCard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import DropDownPicker from 'react-native-dropdown-picker';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement';
+import Layout from '../src/Layout';
 
 const SellPage = () => {
   const [searchText, setSearchText] = useState('');
@@ -139,8 +140,9 @@ const SellPage = () => {
   }, [searchText, statusValue, propertyTypeValue, priceFrom, priceTo]);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <View style={styles.container}>
+    <Layout>
+      <GestureHandlerRootView style={styles.container}>
+        <View style={styles.container}>
         <ImageBackground source={require('../assets/searchImage.jpg')} style={styles.image}>
           <View style={styles.overlay}>
             <View style={styles.searchRow}>
@@ -286,7 +288,8 @@ const SellPage = () => {
           </View>
         </View>
       </Modal>
-    </GestureHandlerRootView>
+        </GestureHandlerRootView>
+      </Layout>
   );
 };
 

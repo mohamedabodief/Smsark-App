@@ -9,6 +9,7 @@ import { storage } from '../FireBase/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement'
 import { Picker } from '@react-native-picker/picker';
+import Layout from '../src/Layout';
 
 // مخطط التحقق من الصحة باستخدام Yup
 const validationSchema = yup.object().shape({
@@ -149,8 +150,9 @@ const ModernRealEstateForm = ({ navigation, route }) => {
   const adStatuses = ['تحت العرض','منتهي','تحت التفاوض'];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <Layout>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>إضافة إعلان عقاري</Text>
           <Text style={styles.subtitle}>أضف تفاصيل عقارك وابدأ في التواصل مع العملاء المحتملين</Text>
@@ -501,8 +503,9 @@ const ModernRealEstateForm = ({ navigation, route }) => {
 
         {/* رسائل الخطأ */}
         {submitError && <Text style={styles.errorText}>{submitError}</Text>}
-      </ScrollView>
-    </SafeAreaView>
+              </ScrollView>
+      </SafeAreaView>
+    </Layout>
   );
 };
 

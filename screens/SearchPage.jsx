@@ -14,10 +14,12 @@ import {
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import SearchCard from './components/SearchCard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Layout from '../src/Layout';
 import DropDownPicker from 'react-native-dropdown-picker';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement';
 import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAdvertisement';
 import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
+import FooterNav from '../src/componenents/Footer';
 
 const SearchPage = () => {
   const [searchText, setSearchText] = useState('');

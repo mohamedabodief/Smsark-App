@@ -26,7 +26,6 @@ export default function FinancingCard({ item }) {
                 </Text>
                 <Text style={styles.name}>{item.org_name}</Text>
                 <Text style={styles.model}>{item.financing_model}</Text>
-                console.log(item);
             </View>
             <FavoriteButton id={item.id} type="financing" />
 

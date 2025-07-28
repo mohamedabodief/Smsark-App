@@ -20,7 +20,8 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
       <Drawer.Section title="القائمة">
 
         <Drawer.Item label="الصفحة الرئيسية" onPress={() => handleNavigate('Home')} />
-        <Drawer.Item label="إضافة عقار" onPress={() => handleNavigate('AddProperty')} />
+        <Drawer.Item label="إضافة عقار" onPress={() => handleNavigate('')} />
+          <Drawer.Item label="عن الموقع" onPress={() => handleNavigate('About')} />
         <Drawer.Item label="عن الموقع" onPress={() => handleNavigate('About')} />
         <Drawer.Item label="الصفحة الشخصية" onPress={() => handleNavigate('profile')} />
         <Drawer.Item label="تواصل معنا" onPress={() => handleNavigate('Contact')} />

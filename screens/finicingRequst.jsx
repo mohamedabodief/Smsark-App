@@ -12,6 +12,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Layout from '../src/Layout';
 const validationSchema = Yup.object().shape({
   name: Yup.string().required('الاسم مطلوب'),
   income: Yup.number().typeError('رقم فقط').required('الدخل مطلوب'),
@@ -25,7 +26,8 @@ const validationSchema = Yup.object().shape({
 
 const FinancingRequest = ({ navigation }) => {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <Layout>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
      
         <Text style={styles.title}>إنشاء طلب تمويل عقاري</Text>
@@ -173,6 +175,7 @@ const FinancingRequest = ({ navigation }) => {
       </ScrollView>
       </SafeAreaView>
     </GestureHandlerRootView>
+    </Layout>
   );
 };
 
