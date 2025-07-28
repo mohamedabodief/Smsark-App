@@ -76,7 +76,9 @@ class RealEstateDeveloperAdvertisement {
     this.review_note = data.review_note || null;
     this.adPackage = data.adPackage !== undefined ? data.adPackage : null;
   }
-
+  get id() {
+    return this.#id;
+  }
   // // ✅ getter للـ ID
   // get id() {
   //   // التحقق من حالة تسجيل الدخول

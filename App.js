@@ -29,6 +29,8 @@ import DisplayDataScreenFinicingRequst from './screens/DisplayDataScreenFinicing
 import DetailsForFinancingAds from './src/componenents/DetailsForFinancingAds/index.js';
 import DetailsForDevelopment from './src/componenents/DetailsForDevelopmentAds/index.js';
 import DetailsForClient from './src/componenents/DetailsForClient/index.js';
+import OrganizationDetailsScreen from './screens/LoginAndRegister/OrganizationDetailsScreen.js';
+import SearchPage from './screens/SearchPage.jsx';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -74,6 +76,7 @@ function AppDrawer() {
         component={DetailsForDevelopment}
       />
       <Drawer.Screen name="ClientDetails" component={DetailsForClient} />
+      <Drawer.Screen name="Search" component={SearchPage} />
     </Drawer.Navigator>
   );
 }

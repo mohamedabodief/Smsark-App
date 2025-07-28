@@ -24,26 +24,44 @@ const PACKAGE_INFO = {
 export default function DetailsForFinancingAds() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { item } = route.params;
-
+  const { id } = route.params;
+  // console.log("📌 Received id:", id);
   const [clientAds, setClientAds] = useState(null);
   const [mainImage, setMainImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [showFull, setShowFull] = useState(false);
 
   useEffect(() => {
-  if (item) {
-    setClientAds(item);
-    if (Array.isArray(item.images) && item.images.length > 0) {
-      setMainImage(item.images[0]);
+  const fetchAdDetails = async () => {
+    if (!id || typeof id !== 'string') {
+      Alert.alert("خطأ", "معرّف الإعلان غير صالح");
+      navigation.navigate('Home'); // أو أي شاشة ترجع لها
+      return;
     }
-    setLoading(false);
-  } else {
-    Alert.alert("خطأ", "الإعلان غير موجود");
-    navigation.goBack();
-  }
-}, []);
 
+    try {
+      const adDetails = await FinancingAdvertisement.getById(id);
+      if (!adDetails) {
+        Alert.alert("خطأ", "الإعلان غير موجود");
+        navigation.navigate('Home');
+        return;
+      }
+
+      setClientAds(adDetails);
+      if (Array.isArray(adDetails.images) && adDetails.images.length > 0) {
+        setMainImage(adDetails.images[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching ad details:", error);
+      Alert.alert("خطأ", "حدث خطأ أثناء تحميل البيانات");
+      navigation.navigate('Home');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAdDetails();
+}, [id]);
 
   const handleShare = () => {
     Alert.alert("مشاركة", "هذه الخاصية غير مدعومة بالكامل على هذا الجهاز");

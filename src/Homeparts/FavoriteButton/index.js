@@ -3,25 +3,29 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleFavoriteAsync, loadFavoritesAsync } from '../../redux/favoritesSlice';
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 
-const FavoriteButton = ({ id, type }) => {
+const FavoriteButton = ({ id }) => {
   const dispatch = useDispatch();
+  const route = useRoute();
   const favorites = useSelector((state) => state.favorites.list);
 
   useEffect(() => {
     dispatch(loadFavoritesAsync());
   }, []);
 
-  const isFavorite = favorites.some(
-  (fav) =>
-    fav.advertisement_id === id &&
-    (fav.type || 'financing') === (type || 'financing')
-);
+  const isFavorite = favorites.some((fav) => fav.advertisement_id === id);
 
+  const isInFavoritesScreen = route.name === 'Favorite';
 
   const handleToggleFavorite = () => {
-    dispatch(toggleFavoriteAsync({ advertisement_id: id, type }));
-    // لا حاجة لإعادة loadFavorites هنا لأن toggleFavoriteAsync يعيدها
+    if (isInFavoritesScreen && isFavorite) {
+      // في شاشة المفضلة: احذف فقط
+      dispatch(toggleFavoriteAsync({ advertisement_id: id }));
+    } else {
+      // في أي شاشة تانية: أضف أو احذف
+      dispatch(toggleFavoriteAsync({ advertisement_id: id }));
+    }
   };
 
   return (
@@ -50,4 +54,4 @@ const styles = StyleSheet.create({
 export default FavoriteButton;
 
 
-// stop_________________________________________
+//stop____________________
