@@ -11,7 +11,6 @@ import {
   StyleSheet
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import RealEstateDeveloperAdvertisement from '../../../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 
 const PACKAGE_INFO = {
@@ -23,7 +22,8 @@ const PACKAGE_INFO = {
 export default function DetailsForDevelopment() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { item } = route.params;
+  const { id } = route.params;  // ✅ استخدمنا item فقط
+  // console.log("📌 Received id:", id);
 
   const [clientAds, setClientAds] = useState(null);
   const [mainImage, setMainImage] = useState('');
@@ -31,17 +31,37 @@ export default function DetailsForDevelopment() {
   const [showFull, setShowFull] = useState(false);
 
   useEffect(() => {
-    if (item) {
-      setClientAds(item);
-      if (Array.isArray(item.images) && item.images.length > 0) {
-        setMainImage(item.images[0]);
-      }
-      setLoading(false);
-    } else {
-      Alert.alert("خطأ", "الإعلان غير موجود");
-      navigation.goBack();
+  const fetchAdDetails = async () => {
+    if (!id || typeof id !== 'string') {
+      Alert.alert("خطأ", "معرّف الإعلان غير صالح");
+      navigation.navigate('Home'); // أو أي شاشة ترجع لها
+      return;
     }
-  }, []);
+
+    try {
+      const adDetails = await RealEstateDeveloperAdvertisement.getById(id);
+      if (!adDetails) {
+        Alert.alert("خطأ", "الإعلان غير موجود");
+        navigation.navigate('Home');
+        return;
+      }
+
+      setClientAds(adDetails);
+      if (Array.isArray(adDetails.images) && adDetails.images.length > 0) {
+        setMainImage(adDetails.images[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching ad details:", error);
+      Alert.alert("خطأ", "حدث خطأ أثناء تحميل البيانات");
+      navigation.navigate('Home');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAdDetails();
+}, [id]);
+
 
   const handleShare = () => {
     Alert.alert("مشاركة", "هذه الخاصية غير مدعومة بالكامل على هذا الجهاز");
@@ -64,12 +84,12 @@ export default function DetailsForDevelopment() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* الصور الرئيسية والمعاينة */}
       <Image
         source={mainImage ? { uri: mainImage } : require('../../assets/1.webp')}
         style={styles.mainImage}
         resizeMode="cover"
       />
+
       <ScrollView horizontal style={styles.previewRow}>
         {clientAds.images && clientAds.images.length > 0 ? (
           clientAds.images.map((img, idx) => (
@@ -84,16 +104,17 @@ export default function DetailsForDevelopment() {
 
       <View style={styles.detailsContainer}>
         <Text style={styles.title}>{clientAds.developer_name || 'غير معروف'}</Text>
+
         <Text numberOfLines={showFull ? undefined : 4} style={styles.description}>
           {clientAds.description || 'لا يوجد وصف'}
         </Text>
+
         {clientAds.description?.length > 200 && (
           <TouchableOpacity onPress={() => setShowFull(!showFull)}>
             <Text style={styles.moreBtn}>{showFull ? 'إخفاء التفاصيل' : 'عرض المزيد'}</Text>
           </TouchableOpacity>
         )}
 
-        {/* معلومات المطور */}
         <View style={styles.infoRow}>
           <Text style={styles.label}>المطور:</Text>
           <Text style={styles.value}>{clientAds.developer_name || 'غير معروف'}</Text>
@@ -120,7 +141,9 @@ export default function DetailsForDevelopment() {
 
         <View style={styles.infoRow}>
           <Text style={styles.label}>الموقع:</Text>
-          <Text style={styles.value}>{clientAds.location || 'غير محدد'}</Text>
+          <Text style={styles.value}>
+            المدينة: {clientAds?.location?.city || 'غير محددة'} - المحافظة: {clientAds?.location?.governorate || 'غير محددة'}
+          </Text>
         </View>
 
         <View style={styles.infoRow}>
@@ -141,7 +164,6 @@ export default function DetailsForDevelopment() {
         </View>
       </View>
 
-      {/* أزرار التواصل */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={callNow} style={styles.callBtn}>
           <Text style={styles.btnText}>اتصل الآن</Text>
@@ -182,6 +204,3 @@ const styles = StyleSheet.create({
   },
   btnText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
 });
-
-
-// stop_________________________________________

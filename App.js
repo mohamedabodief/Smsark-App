@@ -28,9 +28,10 @@ import DetailsForClient from './src/componenents/DetailsForClient/index.js';
 import SellPage from './screens/sell.jsx';
 import DeveloperPage from './screens/developer.jsx';
 import FinancingPage from './screens/financing.jsx';
-import SearchPage from './screens/SearchPage.jsx';
 import AddAdFin from './src/componenents/FinAddAdsForm';
 import MyAdsScreen from './screens/showMyAds/showMyAdsClient.jsx';
+import OrganizationDetailsScreen from './screens/LoginAndRegister/OrganizationDetailsScreen.js';
+import SearchPage from './screens/SearchPage.jsx';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -142,15 +143,6 @@ function AppDrawer() {
         component={ProfileScreen}
         options={{ title: 'الملف الشخصي', drawerLabel: 'الملف الشخصي' }}
       />
-      <Drawer.Screen name="Home" component={Home} />
-      <Drawer.Screen name="AddAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل' }} />
-      <Drawer.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} options={{ title: 'مراجعة بيانات العميل' }} />
-      <Drawer.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} options={{ title: 'مراجعة بيانات المطور' }} />
-      <Drawer.Screen name="FinancingRequest" component={FinancingRequest} options={{ title: 'طلب تمويل' }} />
-      <Stack.Screen name="displayInfo" component={DisplayDataScreenFinicingRequst} />
-      <Stack.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
-      <Stack.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
-      <Stack.Screen name="ClientDetails" component={DetailsForClient} />
     </Drawer.Navigator>
   );
 }
@@ -161,10 +153,11 @@ export default function App() {
     <Provider store={store}>
       <NavigationContainer screenOptions={{ headerShown: false }}>
         <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} screenOptions={{ headerShown: false }} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} screenOptions={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={RegisterStack} screenOptions={{ headerShown: false }} />
-          <Stack.Screen name="MainApp" component={AppDrawer} screenOptions={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="Register" component={RegisterStack} />
+          <Stack.Screen name="OrganizationDetails" component={OrganizationDetailsScreen} />
+          <Stack.Screen name="MainApp" component={AppDrawer} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

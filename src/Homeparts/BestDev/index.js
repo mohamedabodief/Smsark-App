@@ -17,17 +17,18 @@ export default function BestDev() {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const allAds = await RealEstateDeveloperAdvertisement.getAll(); // ✅ دالة داخل object
-      setOffers(allAds);
-    } catch (error) {
-      console.error('Error fetching development ads:', error);
-    }  finally {
-      setLoading(false); // برضو محتاج توقف التحميل بعد ما البيانات تيجي
-    }
-  };
-  fetchData();
+    const fetchData = async () => {
+        try {
+            const allAds = await RealEstateDeveloperAdvertisement.getAll();
+            // console.log('Fetched offers:', allAds); // سجل للتحقق
+            setOffers(allAds);
+        } catch (error) {
+            // console.error('Error fetching development ads:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
 }, []);
 
 
@@ -49,7 +50,7 @@ export default function BestDev() {
   }, [offers]);
 
   const renderCard = ({ item }) => <DevelopmentCard item={item} />;
-
+  // console.log(object);
 
   return (
     <View style={styles.container}>
@@ -65,7 +66,7 @@ export default function BestDev() {
           horizontal
           data={offers}
           renderItem={renderCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
           getItemLayout={(data, index) => ({
