@@ -1,12 +1,32 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import Favorite from '../../../FireBase/modelsWithOperations/Favorite';
-
+import FinancingAdvertisement from '../../../FireBase/modelsWithOperations/FinancingAdvertisement';
+import RealEstateDeveloperAdvertisement from '../../../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 export const loadFavoritesAsync = createAsyncThunk(
   'favorites/loadFavorites',
   async () => {
-    const snapshot = await getDocs(collection(db, 'favorites'));
-    const data = snapshot.docs.map(doc => doc.data());
-    return data;
+    return new Promise((resolve) => {
+      Favorite.subscribeByUser('guest', async (favorites) => {
+        const detailedFavorites = await Promise.all(
+          favorites.map(async (fav) => {
+            let data;
+            if (fav.type === 'financing') {
+              data = await FinancingAdvertisement.getById(fav.advertisement_id);
+            } else {
+              data = await RealEstateDeveloperAdvertisement.getById(fav.advertisement_id);
+            }
+
+            return {
+              ...data,
+              advertisement_id: fav.advertisement_id,
+              type: fav.type || 'financing',
+            };
+          })
+        );
+
+        resolve(detailedFavorites);
+      });
+    });
   }
 );
 
@@ -24,11 +44,12 @@ export const toggleFavoriteAsync = createAsyncThunk(
       Favorite.subscribeByUser('guest', (favorites) => {
         const formatted = favorites.map((fav) => ({
           advertisement_id: fav.advertisement_id,
-          type: fav.type || 'financing', // fallback again
+          type: fav.type || 'financing', // لازم النوع يرجع
         }));
         resolve(formatted);
       });
     });
+
   }
 );
 
@@ -43,17 +64,20 @@ const favoritesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-  builder
-    .addCase(loadFavoritesAsync.fulfilled, (state, action) => {
-      state.list = action.payload;
-    })
-    .addCase(toggleFavoriteAsync.fulfilled, (state, action) => {
-      state.list = action.payload; // تحديث القائمة بعد التبديل
-    });
-}
+    builder
+      .addCase(loadFavoritesAsync.fulfilled, (state, action) => {
+        state.list = action.payload;
+      })
+      .addCase(toggleFavoriteAsync.fulfilled, (state, action) => {
+        state.list = action.payload; // تحديث القائمة بعد التبديل
+      });
+  }
 
 
 });
 
 export const { setFavorites } = favoritesSlice.actions;
 export default favoritesSlice.reducer;
+
+
+// stop_________________________________________
