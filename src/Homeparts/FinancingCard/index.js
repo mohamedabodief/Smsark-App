@@ -37,8 +37,9 @@ export default function FinancingCard({ item }) {
 
 const styles = StyleSheet.create({
     card: {
-        width: Dimensions.get('window').width * 0.7,
-        marginRight: 16,
+        width: Dimensions.get('window').width * 0.8,
+        marginRight: 10,
+        marginBottom:20,
         backgroundColor: '#fff',
         borderRadius: 16,
         overflow: 'hidden',

@@ -17,6 +17,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { RealEstateDeveloperAdvertisement } from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
+import Layout from '../src/Layout';
 
 const validationSchema = yup.object().shape({
   developer_name: yup.string().required('اسم المطور مطلوب'),
@@ -158,8 +159,9 @@ const ModernDeveloperForm = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+    <Layout>
+      <SafeAreaView style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
         <View style={styles.header}>
           <Text style={styles.title}>🏗️ إضافة إعلان مطور عقاري</Text>
           <Text style={styles.subtitle}>
@@ -615,6 +617,7 @@ const ModernDeveloperForm = ({ navigation, route }) => {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </Layout>
   );
 };
 

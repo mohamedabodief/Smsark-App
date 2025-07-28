@@ -16,7 +16,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import Layout from '../../Layout';
 
-I18nManager.forceRTL(true); // للتأكد من الاتجاه
+I18nManager.forceRTL(true); 
 
 const AddAdvDev = () => {
   const [loading, setLoading] = useState(false);

@@ -14,10 +14,13 @@ import {
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import SearchCard from './components/SearchCard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Layout from '../src/Layout';
 import DropDownPicker from 'react-native-dropdown-picker';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement';
 import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAdvertisement';
 import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
+import FooterNav from '../src/componenents/Footer';
+import Nav from '../src/componenents/Nav';
 
 const SearchPage = () => {
   const [searchText, setSearchText] = useState('');
@@ -265,6 +268,7 @@ const SearchPage = () => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      <Nav/>
       <View style={styles.container}>
         <ImageBackground source={require('../assets/searchImage.jpg')} style={styles.image}>
           <View style={styles.overlay}>
@@ -332,6 +336,7 @@ const SearchPage = () => {
             ))
           )}
         </ScrollView>
+        <FooterNav/>
       </View>
 
       <Modal
@@ -439,7 +444,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 150,
     justifyContent: 'center',
   },
   overlay: {
