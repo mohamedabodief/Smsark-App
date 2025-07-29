@@ -1,11 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { StyleSheet, useColorScheme } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import { store } from './src/redux/store';
+import { loadFavoritesAsync } from './src/redux/favoritesSlice';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { Provider as PaperProvider, MD3LightTheme as DefaultTheme, configureFonts } from 'react-native-paper';
+import { DarkTheme, LightTheme } from './theme';
 
 // Screen Components
 import LoginScreen from './screens/LoginAndRegister/LoginScreen.js';
@@ -36,17 +41,12 @@ import SearchPage from './screens/SearchPage.jsx';
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
+SplashScreen.preventAutoHideAsync();
+
 // Stack Navigator لشاشات النماذج
 function FormStackNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        headerStyle: { backgroundColor: '#f4511e' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} />
       <Stack.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} />
       <Stack.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} />
@@ -60,14 +60,7 @@ function FormStackNavigator() {
 // Stack Navigator للشاشات الرئيسية
 function MainStackNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        headerStyle: { backgroundColor: '#f4511e' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Sell" component={SellPage} />
       <Stack.Screen name="Developer" component={DeveloperPage} />
@@ -81,11 +74,17 @@ function MainStackNavigator() {
 }
 
 // Drawer Navigator
-function AppDrawer() {
+function AppDrawer({ toggleMode }) {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(loadFavoritesAsync());
+  }, [dispatch]);
+
   return (
     <Drawer.Navigator
       initialRouteName="MainStack"
-      drawerContent={(props) => <DrawerContent {...props} />}
+      drawerContent={(props) => <DrawerContent {...props} toggleMode={toggleMode} />}
       screenOptions={{
         headerShown: false,
         drawerStyle: { backgroundColor: '#f6f6f6', width: 280 },
@@ -93,73 +92,72 @@ function AppDrawer() {
         drawerInactiveTintColor: '#333',
       }}
     >
-      <Drawer.Screen
-        name="MainStack"
-        component={MainStackNavigator}
-        options={{ title: 'الرئيسية', drawerLabel: 'الرئيسية' }}
-      />
-      <Drawer.Screen
-        name="Search"
-        component={SearchPage}
-        options={{ title: 'بحث', drawerLabel: 'بحث' }}
-      />
-      <Drawer.Screen
-        name="FormStack"
-        component={FormStackNavigator}
-        options={{ title: 'النماذج', drawerLabel: 'النماذج والإعلانات' }}
-      />
-      <Drawer.Screen
-        name="AddClientAds"
-        component={ModernRealEstateForm}
-        options={{ title: 'إضافة إعلان عميل', drawerLabel: 'إضافة إعلان عميل' }}
-      />
-      <Drawer.Screen
-        name="AddDeveloperAds"
-        component={AddDeveloperAdsForm}
-        options={{ title: 'إضافة إعلان مطور', drawerLabel: 'إضافة إعلان مطور' }}
-      />
-      <Drawer.Screen
-        name="AddFinancingAds"
-        component={AddAdFin}
-        options={{ title: 'إضافة إعلان تمويل', drawerLabel: 'إضافة إعلان تمويل' }}
-      />
-      <Drawer.Screen
-        name="MyAds"
-        component={MyAdsScreen}
-        options={{ title: 'عرض إعلاناتي', drawerLabel: 'عرض إعلاناتي' }}
-      />
-      <Drawer.Screen
-        name="About"
-        component={AboutUsScreen}
-        options={{ title: 'من نحن', drawerLabel: 'من نحن' }}
-      />
-      <Drawer.Screen
-        name="Favorite"
-        component={FavoritesScreen}
-        options={{ title: 'المفضلة', drawerLabel: 'المفضلة' }}
-      />
-      <Drawer.Screen
-        name="profile"
-        component={ProfileScreen}
-        options={{ title: 'الملف الشخصي', drawerLabel: 'الملف الشخصي' }}
-      />
+      <Drawer.Screen name="MainStack" component={MainStackNavigator} options={{ title: 'الرئيسية', drawerLabel: 'الرئيسية' }} />
+      <Drawer.Screen name="Search" component={SearchPage} options={{ title: 'بحث', drawerLabel: 'بحث' }} />
+      <Drawer.Screen name="FormStack" component={FormStackNavigator} options={{ title: 'النماذج', drawerLabel: 'النماذج والإعلانات' }} />
+      <Drawer.Screen name="AddClientAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل', drawerLabel: 'إضافة إعلان عميل' }} />
+      <Drawer.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} options={{ title: 'إضافة إعلان مطور', drawerLabel: 'إضافة إعلان مطور' }} />
+      <Drawer.Screen name="AddFinancingAds" component={AddAdFin} options={{ title: 'إضافة إعلان تمويل', drawerLabel: 'إضافة إعلان تمويل' }} />
+      <Drawer.Screen name="MyAds" component={MyAdsScreen} options={{ title: 'عرض إعلاناتي', drawerLabel: 'عرض إعلاناتي' }} />
+      <Drawer.Screen name="About" component={AboutUsScreen} options={{ title: 'من نحن', drawerLabel: 'من نحن' }} />
+      <Drawer.Screen name="Favorite" component={FavoritesScreen} options={{ title: 'المفضلة', drawerLabel: 'المفضلة' }} />
+      <Drawer.Screen name="profile" component={ProfileScreen} options={{ title: 'الملف الشخصي', drawerLabel: 'الملف الشخصي' }} />
     </Drawer.Navigator>
   );
 }
 
 // التطبيق الرئيسي
 export default function App() {
+  const scheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(scheme === 'dark');
+
+  const [fontsLoaded] = useFonts({
+    'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
+    'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
+  });
+
+  const toggleMode = () => setIsDarkMode((prev) => !prev);
+
+  const fontConfig = {
+    ios: {
+      regular: { fontFamily: 'Roboto-Regular', fontWeight: 'normal' },
+      medium: { fontFamily: 'Roboto-Medium', fontWeight: 'normal' },
+      light: { fontFamily: 'Roboto-Light', fontWeight: 'normal' },
+      thin: { fontFamily: 'Roboto-Thin', fontWeight: 'normal' },
+    },
+    android: {
+      regular: { fontFamily: 'Roboto-Regular', fontWeight: 'normal' },
+      medium: { fontFamily: 'Roboto-Medium', fontWeight: 'normal' },
+      light: { fontFamily: 'Roboto-Light', fontWeight: 'normal' },
+      thin: { fontFamily: 'Roboto-Thin', fontWeight: 'normal' },
+    },
+  };
+
+  const paperTheme = {
+    ...(isDarkMode ? DarkTheme : LightTheme),
+    fonts: configureFonts({ config: fontConfig }),
+  };
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
   return (
     <Provider store={store}>
-      <NavigationContainer screenOptions={{ headerShown: false }}>
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="Register" component={RegisterStack} />
-          <Stack.Screen name="OrganizationDetails" component={OrganizationDetailsScreen} />
-          <Stack.Screen name="MainApp" component={AppDrawer} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <PaperProvider theme={paperTheme}>
+        <NavigationContainer theme={isDarkMode ? NavigationDarkTheme : NavigationLightTheme}>
+          <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="MainApp">{() => <AppDrawer toggleMode={toggleMode} />}</Stack.Screen>
+            <Stack.Screen name="Register" component={RegisterStack} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
     </Provider>
   );
 }

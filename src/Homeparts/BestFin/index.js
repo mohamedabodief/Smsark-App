@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import FavoriteButton from '../FavoriteButton';
 import FinancingCard from '../FinancingCard';
 import FinancingAdvertisement from '../../../FireBase/modelsWithOperations/FinancingAdvertisement';
+import { useTheme } from 'react-native-paper';
 
 export default function BestFin() {
   const [offers, setOffers] = useState([]);
@@ -20,6 +21,7 @@ export default function BestFin() {
   const cardWidth = Dimensions.get('window').width * 0.8;
   const currentIndex = useRef(0);
   const intervalRef = useRef(null);
+  const { colors } = useTheme();
 
   useEffect(() => {
     const unsubscribe = FinancingAdvertisement.subscribeActiveAds((ads) => {
@@ -51,12 +53,14 @@ export default function BestFin() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>أفضل عروض التمويل</Text>
+      <Text style={[styles.title, { color: colors.text }]}>
+        أفضل عروض التمويل
+      </Text>
 
       {loading ? (
-        <Text style={styles.loading}>...جاري تحميل العروض</Text>
+        <Text style={[styles.loading, { color: colors.text }]}>...جاري تحميل العروض</Text>
       ) : offers.length === 0 ? (
-        <Text style={styles.loading}>لا توجد عروض حالياً</Text>
+        <Text style={[styles.loading, { color: colors.text }]}>لا توجد عروض حالياً</Text>
       ) : (
         <FlatList
           ref={scrollRef}
@@ -81,6 +85,7 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 30,
     paddingHorizontal: 16,
+    // paddingBottom:50,
   },
   title: {
     fontSize: 22,
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
   loading: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#555',
+    // color: '#555',
   },
   listContainer: {
     paddingHorizontal: 8,
@@ -100,7 +105,9 @@ const styles = StyleSheet.create({
   card: {
     width: Dimensions.get('window').width * 0.7,
     marginRight: 16,
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#fff',
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 4,
