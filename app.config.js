@@ -28,6 +28,7 @@ export default {
     web: {
       favicon: './assets/favicon.png',
     },
+    plugins: ['expo-font'],
     extra: {
       FIREBASE_API_KEY: process.env.API_KEY,
       AUTH_DOMAIN: process.env.AUTH_DOMAIN,
@@ -39,5 +40,6 @@ export default {
         projectId: process.env.PROJECT_ID,
       },
     },
+    
   },
 };

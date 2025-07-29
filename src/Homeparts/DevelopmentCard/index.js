@@ -23,7 +23,7 @@ export default function DevelopmentCard({ item }) {
 
     return (
         <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, { borderWidth: 0.2, borderColor: '#fff' }]}
             onPress={() => navigation.navigate('DevelopmentDetails', { id:item.id })}
         >
             <Image
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     card: {
         width: Dimensions.get('window').width * 0.7,
         marginRight: 16,
-        backgroundColor: '#fff',
+        // backgroundColor: '#fff',
         borderRadius: 16,
         overflow: 'hidden',
         elevation: 4,

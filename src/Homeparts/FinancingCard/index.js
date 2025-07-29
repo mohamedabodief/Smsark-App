@@ -14,7 +14,7 @@ export default function FinancingCard({ item }) {
     const navigation = useNavigation();
     // console.log(item);
     return (
-        <TouchableOpacity style={styles.card}
+        <TouchableOpacity style={[styles.card, { borderWidth: 0.2, borderColor: '#fff' }]}
             onPress={() => navigation.navigate('detailsForFinancingAds', { id:item.id })}>
             <Image
                 source={item.image ? { uri: item.image } : require('../../assets/1.webp')}

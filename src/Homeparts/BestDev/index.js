@@ -7,8 +7,10 @@ import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Dimensions }
 import FavoriteButton from '../FavoriteButton';
 import DevelopmentCard from '../DevelopmentCard';
 import RealEstateDeveloperAdvertisement from '../../../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
+import { useTheme } from 'react-native-paper';
 
 export default function BestDev() {
+  const { colors } = useTheme();
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
@@ -18,18 +20,18 @@ export default function BestDev() {
 
   useEffect(() => {
     const fetchData = async () => {
-        try {
-            const allAds = await RealEstateDeveloperAdvertisement.getAll();
-            // console.log('Fetched offers:', allAds); // سجل للتحقق
-            setOffers(allAds);
-        } catch (error) {
-            // console.error('Error fetching development ads:', error);
-        } finally {
-            setLoading(false);
-        }
+      try {
+        const allAds = await RealEstateDeveloperAdvertisement.getAll();
+        // console.log('Fetched offers:', allAds); // سجل للتحقق
+        setOffers(allAds);
+      } catch (error) {
+        // console.error('Error fetching development ads:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
-}, []);
+  }, []);
 
 
 
@@ -54,12 +56,16 @@ export default function BestDev() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>أفضل عروض التطوير</Text>
+      <Text style={[styles.title, { color: colors.text }]}>أفضل عروض التطوير</Text>
 
       {loading ? (
-        <Text style={styles.loading}>...جاري تحميل العروض</Text>
+        <Text style={{ textAlign: 'center', fontSize: 16, color: colors.text }}>
+          ...جاري تحميل العروض
+        </Text>
       ) : offers.length === 0 ? (
-        <Text style={styles.loading}>لا توجد عروض حالياً</Text>
+        <Text style={{ textAlign: 'center', fontSize: 16, color: colors.text }}>
+          لا توجد عروض حالياً
+        </Text>
       ) : (
         <FlatList
           ref={scrollRef}
@@ -79,7 +85,6 @@ export default function BestDev() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     paddingTop: 30,
@@ -91,11 +96,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 16,
+    // color: colors.text,
   },
   loading: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#555',
+    // color: colors.text,
   },
   listContainer: {
     paddingHorizontal: 8,
@@ -104,7 +110,9 @@ const styles = StyleSheet.create({
   card: {
     width: Dimensions.get('window').width * 0.7,
     marginRight: 16,
-    backgroundColor: '#fff',
+    // backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: '#fff',
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 4,
@@ -125,10 +133,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 15,
     marginTop: 4,
+    // color: colors.text,
   },
   model: {
     fontSize: 13,
-    color: '#666',
+    // color: colors.text,
     marginTop: 2,
   },
 });
