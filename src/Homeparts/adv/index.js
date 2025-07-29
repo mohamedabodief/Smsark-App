@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
 import { Avatar } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+
 export default function Advertise() {
   const [userType, setUserType] = useState(null);
   const navigation = useNavigation();
+
   useEffect(() => {
-  
     const fetchUserType = async () => {
-     
       const user = { id: 'test-user', type_of_user: 'developer' }; // client | developer | financer | admin | organization
       if (user) {
         setUserType(user.type_of_user);
@@ -28,7 +27,7 @@ export default function Advertise() {
       route: 'AddAds',
     },
     {
-      icon: 'home-city', 
+      icon: 'home-city',
       title: 'مطور؟',
       description: 'أضف عقارك الآن وابدأ في تلقي العروض بسهولة.',
       type: 'developer',
@@ -44,6 +43,11 @@ export default function Advertise() {
   ];
 
   const handleNavigate = (item) => {
+    // ✅ إلغاء كل القيود والسماح بالدخول
+    navigation.navigate(item.route);
+
+    // ❌ القيود الأصلية (تم تعطيلها):
+    /*
     if (!userType) {
       Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً');
       return;
@@ -64,8 +68,8 @@ export default function Advertise() {
     } else {
       Alert.alert('غير مصرح', 'غير مصرح لك بالدخول لهذا القسم');
     }
+    */
   };
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

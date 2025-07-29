@@ -10,23 +10,37 @@ const Stack = createNativeStackNavigator();
 
 export default function RegisterStack() {
   return (
-    <Stack.Navigator initialRouteName="EmailPassword">
+    <Stack.Navigator initialRouteName="EmailPassword" screenOptions={{
+        headerShown: false,
+      }}>
       <Stack.Screen
+      screenOptions={{
+        headerShown: false,
+      }}
         name="EmailPassword"
         component={EmailPasswordScreen}
         options={{ title: 'إنشاء حساب' }}
       />
       <Stack.Screen
+      screenOptions={{
+        headerShown: false,
+      }}
         name="SelectUserType"
         component={SelectUserTypeScreen}
         options={{ title: 'نوع المستخدم' }}
       />
       <Stack.Screen
+      screenOptions={{
+        headerShown: false,
+      }}
         name="ClientDetails"
         component={ClientDetailsScreen}
         options={{ title: 'بيانات العميل' }}
       />
       <Stack.Screen
+      screenOptions={{
+        headerShown: false,
+      }}
         name="OrganizationDetails"
         component={OrganizationDetailsScreen}
         options={{ title: 'بيانات المؤسسة' }}

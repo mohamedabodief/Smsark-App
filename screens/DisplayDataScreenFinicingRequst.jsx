@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Button, Alert, ActivityIndicator } from 'react-native';
 import FinancingRequest from '../FireBase/modelsWithOperations/FinancingRequest';
+import Layout from '../src/Layout';
 
 const DisplayDataScreenFinicingRequst = ({ route, navigation }) => {
   const { formData } = route.params;
@@ -60,7 +61,8 @@ const DisplayDataScreenFinicingRequst = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <Layout>
+      <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>عرض بيانات التمويل</Text>
 
       {Object.entries(formData).map(([key, value]) => (
@@ -92,6 +94,7 @@ const DisplayDataScreenFinicingRequst = ({ route, navigation }) => {
         )}
       </View>
     </ScrollView>
+    </Layout>
   );
 };
 

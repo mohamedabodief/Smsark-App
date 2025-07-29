@@ -10,7 +10,7 @@ export default function FooterNav() {
   const route = useRoute();
 
   const routes = [
-    { key: 'home', title: 'الرئيسية' },
+    { key: 'Home', title: 'الرئيسية' },
     { key: 'search', title: 'بحث' },
     { key: 'favorite', title: 'المفضلة' },
     { key: 'profile', title: 'حسابي' },
@@ -31,15 +31,18 @@ export default function FooterNav() {
 
   const handleIndexChange = (newIndex) => {
   const screenMap = ['Home', 'Search', 'Favorite', 'profile'];
-  if (screenMap[newIndex] !== route.name) {
-    navigation.navigate(screenMap[newIndex]);
-  }
-};
+  const screen = screenMap[newIndex];
+  if (screen === 'Home') {
+      navigation.navigate('MainStack', { screen: 'Home' }); // ← الحل هنا
+    } else {
+      navigation.navigate(screen);
+    }
+  };
 
   // ✅ مكون مسؤول عن رسم الأيقونات يدويًا
   const renderIcon = ({ route, color }) => {
     switch (route.key) {
-      case 'home':
+      case 'Home':
         return <AntDesign name="home" size={24} color={color} />;
       case 'search':
         return <Feather name="search" size={24} color={color} />;

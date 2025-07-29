@@ -1,28 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider, useDispatch } from 'react-redux';
 import { store } from './src/redux/store';
 import { loadFavoritesAsync } from './src/redux/favoritesSlice';
-import { useColorScheme } from 'react-native';
-import { DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
-import { DarkTheme, LightTheme } from './theme';
 import { useFonts } from 'expo-font';
-import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
-import { MD3LightTheme as DefaultTheme, configureFonts } from 'react-native-paper';
 import * as SplashScreen from 'expo-splash-screen';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider as PaperProvider, MD3LightTheme as DefaultTheme, configureFonts } from 'react-native-paper';
+import { DarkTheme, LightTheme } from './theme';
 
-// 🟩 شاشات تسجيل الدخول
+// Screen Components
 import LoginScreen from './screens/LoginAndRegister/LoginScreen.js';
 import ForgotPasswordScreen from './screens/LoginAndRegister/ForgotPasswordScreen.js';
-// 🟩 شاشات تسجيل الحساب
 import RegisterStack from './screens/LoginAndRegister/RegisterStack.js';
-
-// 🟩 شاشات التطبيق الرئيسية
 import Home from './src/componenents/Home';
 import DrawerContent from './src/componenents/DrawerContent';
 import FavoritesScreen from './src/componenents/Favorite';
@@ -37,13 +30,50 @@ import DisplayDataScreenFinicingRequst from './screens/DisplayDataScreenFinicing
 import DetailsForFinancingAds from './src/componenents/DetailsForFinancingAds/index.js';
 import DetailsForDevelopment from './src/componenents/DetailsForDevelopmentAds/index.js';
 import DetailsForClient from './src/componenents/DetailsForClient/index.js';
+import SellPage from './screens/sell.jsx';
+import DeveloperPage from './screens/developer.jsx';
+import FinancingPage from './screens/financing.jsx';
+import AddAdFin from './src/componenents/FinAddAdsForm';
+import MyAdsScreen from './screens/showMyAds/showMyAdsClient.jsx';
 import OrganizationDetailsScreen from './screens/LoginAndRegister/OrganizationDetailsScreen.js';
 import SearchPage from './screens/SearchPage.jsx';
 
-const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
+
 SplashScreen.preventAutoHideAsync();
 
+// Stack Navigator لشاشات النماذج
+function FormStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="DisplayInfoAddClientAds" component={DisplayInfoAddClientAds} />
+      <Stack.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} />
+      <Stack.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} />
+      <Stack.Screen name="FinancingRequest" component={FinancingRequest} />
+      <Stack.Screen name="DisplayFinancingInfo" component={DisplayDataScreenFinicingRequst} />
+      <Stack.Screen name="ModernRealEstateForm" component={ModernRealEstateForm} />
+    </Stack.Navigator>
+  );
+}
+
+// Stack Navigator للشاشات الرئيسية
+function MainStackNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Sell" component={SellPage} />
+      <Stack.Screen name="Developer" component={DeveloperPage} />
+      <Stack.Screen name="Financing" component={FinancingPage} />
+      <Stack.Screen name="Search" component={SearchPage} />
+      <Stack.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
+      <Stack.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
+      <Stack.Screen name="ClientDetails" component={DetailsForClient} />
+    </Stack.Navigator>
+  );
+}
+
+// Drawer Navigator
 function AppDrawer({ toggleMode }) {
   const dispatch = useDispatch();
 
@@ -53,127 +83,78 @@ function AppDrawer({ toggleMode }) {
 
   return (
     <Drawer.Navigator
-      initialRouteName="Home"
+      initialRouteName="MainStack"
       drawerContent={(props) => <DrawerContent {...props} toggleMode={toggleMode} />}
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        drawerStyle: { backgroundColor: '#f6f6f6', width: 280 },
+        drawerActiveTintColor: '#f4511e',
+        drawerInactiveTintColor: '#333',
+      }}
     >
-      <Drawer.Screen name="Home" component={Home} />
-      <Drawer.Screen name="About" component={AboutUsScreen} />
-      <Drawer.Screen name="Favorite" component={FavoritesScreen} />
-      <Drawer.Screen name="profile" component={ProfileScreen} />
-      <Drawer.Screen name="AddAds" component={ModernRealEstateForm} />
-      <Drawer.Screen
-        name="DisplayInfoAddClientAds"
-        component={DisplayInfoAddClientAds}
-      />
-      <Drawer.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} />
-      <Drawer.Screen
-        name="DisplayInfoAddDeveloperAds"
-        component={DisplayInfoAddDeveloperAds}
-      />
-      <Drawer.Screen name="FinancingRequest" component={FinancingRequest} />
-      <Drawer.Screen
-        name="displayInfo"
-        component={DisplayDataScreenFinicingRequst}
-      />
-      <Drawer.Screen
-        name="detailsForFinancingAds"
-        component={DetailsForFinancingAds}
-      />
-      <Drawer.Screen
-        name="DevelopmentDetails"
-        component={DetailsForDevelopment}
-      />
-      <Drawer.Screen name="ClientDetails" component={DetailsForClient} />
-      <Drawer.Screen name="Search" component={SearchPage} />
+      <Drawer.Screen name="MainStack" component={MainStackNavigator} options={{ title: 'الرئيسية', drawerLabel: 'الرئيسية' }} />
+      <Drawer.Screen name="Search" component={SearchPage} options={{ title: 'بحث', drawerLabel: 'بحث' }} />
+      <Drawer.Screen name="FormStack" component={FormStackNavigator} options={{ title: 'النماذج', drawerLabel: 'النماذج والإعلانات' }} />
+      <Drawer.Screen name="AddClientAds" component={ModernRealEstateForm} options={{ title: 'إضافة إعلان عميل', drawerLabel: 'إضافة إعلان عميل' }} />
+      <Drawer.Screen name="AddDeveloperAds" component={AddDeveloperAdsForm} options={{ title: 'إضافة إعلان مطور', drawerLabel: 'إضافة إعلان مطور' }} />
+      <Drawer.Screen name="AddFinancingAds" component={AddAdFin} options={{ title: 'إضافة إعلان تمويل', drawerLabel: 'إضافة إعلان تمويل' }} />
+      <Drawer.Screen name="MyAds" component={MyAdsScreen} options={{ title: 'عرض إعلاناتي', drawerLabel: 'عرض إعلاناتي' }} />
+      <Drawer.Screen name="About" component={AboutUsScreen} options={{ title: 'من نحن', drawerLabel: 'من نحن' }} />
+      <Drawer.Screen name="Favorite" component={FavoritesScreen} options={{ title: 'المفضلة', drawerLabel: 'المفضلة' }} />
+      <Drawer.Screen name="profile" component={ProfileScreen} options={{ title: 'الملف الشخصي', drawerLabel: 'الملف الشخصي' }} />
     </Drawer.Navigator>
   );
 }
 
+// التطبيق الرئيسي
 export default function App() {
   const scheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(scheme === 'dark');
-   const [fontsLoaded] = useFonts({
+
+  const [fontsLoaded] = useFonts({
     'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
   });
-  const toggleMode = () => {
-    setIsDarkMode((prev) => !prev);
-  };
+
+  const toggleMode = () => setIsDarkMode((prev) => !prev);
+
   const fontConfig = {
-  ios: {
-    regular: {
-      fontFamily: 'Roboto-Regular',
-      fontWeight: 'normal',
+    ios: {
+      regular: { fontFamily: 'Roboto-Regular', fontWeight: 'normal' },
+      medium: { fontFamily: 'Roboto-Medium', fontWeight: 'normal' },
+      light: { fontFamily: 'Roboto-Light', fontWeight: 'normal' },
+      thin: { fontFamily: 'Roboto-Thin', fontWeight: 'normal' },
     },
-    medium: {
-      fontFamily: 'Roboto-Medium',
-      fontWeight: 'normal',
+    android: {
+      regular: { fontFamily: 'Roboto-Regular', fontWeight: 'normal' },
+      medium: { fontFamily: 'Roboto-Medium', fontWeight: 'normal' },
+      light: { fontFamily: 'Roboto-Light', fontWeight: 'normal' },
+      thin: { fontFamily: 'Roboto-Thin', fontWeight: 'normal' },
     },
-    light: {
-      fontFamily: 'Roboto-Light',
-      fontWeight: 'normal',
-    },
-    thin: {
-      fontFamily: 'Roboto-Thin',
-      fontWeight: 'normal',
-    },
-  },
-  android: {
-    regular: {
-      fontFamily: 'Roboto-Regular',
-      fontWeight: 'normal',
-    },
-    medium: {
-      fontFamily: 'Roboto-Medium',
-      fontWeight: 'normal',
-    },
-    light: {
-      fontFamily: 'Roboto-Light',
-      fontWeight: 'normal',
-    },
-    thin: {
-      fontFamily: 'Roboto-Thin',
-      fontWeight: 'normal',
-    },
-  },
-};
-const paperTheme = {
-  ...(isDarkMode ? DarkTheme : LightTheme),
-  fonts: configureFonts({ config: fontConfig }),
-};
-  const appTheme = {
-  ...DefaultTheme,
-  fonts: configureFonts({ config: fontConfig }),
-};
+  };
+
+  const paperTheme = {
+    ...(isDarkMode ? DarkTheme : LightTheme),
+    fonts: configureFonts({ config: fontConfig }),
+  };
+
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
-    return null; // ممكن تعرض شاشة تحميل لو حبيت
-  }
+  if (!fontsLoaded) return null;
+
   return (
     <Provider store={store}>
       <PaperProvider theme={paperTheme}>
-  <NavigationContainer theme={isDarkMode ? NavigationDarkTheme : NavigationLightTheme}>
-
-          <Stack.Navigator
-            initialRouteName="Login"
-            screenOptions={{ headerShown: false }}
-          >
+        <NavigationContainer theme={isDarkMode ? NavigationDarkTheme : NavigationLightTheme}>
+          <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-            />
-            <Stack.Screen name="MainApp">
-              {() => <AppDrawer toggleMode={toggleMode} />}
-            </Stack.Screen>
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="MainApp">{() => <AppDrawer toggleMode={toggleMode} />}</Stack.Screen>
             <Stack.Screen name="Register" component={RegisterStack} />
-
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

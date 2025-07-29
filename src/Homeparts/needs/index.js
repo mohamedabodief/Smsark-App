@@ -8,25 +8,25 @@ const cards = [
     icon: 'business',
     title: 'شراء',
     desc: 'استكشف آلاف العقارات المتاحة للشراء.',
-    path: 'SellScreen',
+    path: 'Sell',
   },
   {
     icon: 'vpn-key',
     title: 'تأجير',
     desc: 'قم بتأجير عقارك الآن للوصول للمستأجر المناسب.',
-    path: 'RentScreen',
+    path: 'Sell',
   },
   {
     icon: 'attach-money',
     title: 'تطوير',
     desc: 'احصل على حلول تطويريه مخصصة لك بسهولة.',
-    path: 'DevelopmentScreen',
+    path: 'Developer',
   },
   {
     icon: 'attach-money',
     title: 'تمويل',
     desc: 'احصل على حلول تمويلية مخصصة لك بسهولة.',
-    path: 'FinanceScreen',
+    path: 'Financing',
   },
 ];
 
@@ -42,7 +42,7 @@ const Needs = () => {
       <Text style={styles.desc}>{item.desc}</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate(item.path)}
+        onPress={() => navigation.navigate('MainStack', { screen: item.path })}
       >
         <MaterialIcons name="arrow-forward" size={20} color="white" />
       </TouchableOpacity>

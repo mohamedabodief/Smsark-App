@@ -13,6 +13,7 @@ import {
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import SearchCard from './components/SearchCard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Layout from '../src/Layout';
 
 import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 
@@ -108,8 +109,9 @@ const DeveloperPage = () => {
   }, [searchText, priceFrom, priceTo]);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <View style={styles.container}>
+    <Layout>
+      <GestureHandlerRootView style={styles.container}>
+        <View style={styles.container}>
         <ImageBackground source={require('../assets/searchImage.jpg')} style={styles.image}>
           <View style={styles.overlay}>
             <View style={styles.searchRow}>
@@ -212,7 +214,8 @@ const DeveloperPage = () => {
           </View>
         </View>
       </Modal>
-    </GestureHandlerRootView>
+        </GestureHandlerRootView>
+      </Layout>
   );
 };
 
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 150,
     justifyContent: 'center',
   },
   overlay: {

@@ -1,97 +1,129 @@
-// src/components/Profile.js
-
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { auth } from '../../../FireBase/firebaseConfig';
+import User from '../../../FireBase/modelsWithOperations/User';
 import Layout from '../../Layout';
-export default function ProfileScreen() {
-  // بيانات وهمية
-  const user = {
-    name: 'محمد عبد الله',
-    age: 28,
-    gender: 'ذكر',
-    email: 'mohamed@example.com',
-    address: 'القاهرة، مصر',
-    image: 'https://i.pravatar.cc/200', // صورة رمزية عشوائية
-  };
+const ProfileScreen = () => {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUserUid = auth.currentUser?.uid;
+        if (!currentUserUid) return;
+        // console.log("✅ Current User UID:", currentUserUid);
+        const user = await User.getByUid(currentUserUid);
+        setUserData(user);
+      } catch (err) {
+        console.error('❌ Error fetching user data:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#f4511e" />
+      </View>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <View style={styles.centered}>
+        <Text>لم يتم العثور على بيانات المستخدم.</Text>
+      </View>
+    );
+  }
 
   return (
     <Layout>
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri: user.image }} style={styles.avatar} />
-      <Text style={styles.name}>{user.name}</Text>
+      <View style={styles.container}>
+        {userData.image ? (
+          <Image source={{ uri: userData.image }} style={styles.profileImage} />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Text style={styles.placeholderText}>👤</Text>
+          </View>
+        )}
+        <Text style={styles.label}>النوع: {userData.type_of_user}</Text>
 
-      <View style={styles.infoBox}>
-        <Icon name="person" size={22} color="#555" />
-        <Text style={styles.infoText}>النوع: {user.gender}</Text>
+        {userData.type_of_user === 'client' && (
+          <>
+            <Text style={styles.info}>الاسم: {userData.cli_name}</Text>
+            <Text style={styles.info}>العمر: {userData.age}</Text>
+            <Text style={styles.info}>الجنس: {userData.gender}</Text>
+          </>
+        )}
+        {userData.type_of_user === 'organization' && (
+          <>
+            <Text style={styles.info}>اسم المؤسسة: {userData.org_name}</Text>
+            <Text style={styles.info}>نوع المؤسسة: {userData.type_of_organization}</Text>
+          </>
+        )}
+        {userData.type_of_user === 'admin' && (
+          <Text style={styles.info}>الاسم: {userData.adm_name}</Text>
+        )}
+
+        <Text style={styles.info}>📞 رقم الهاتف: {userData.phone}</Text>
+        <Text style={styles.info}>📍 المحافظة: {userData.governorate}</Text>
+        <Text style={styles.info}>🏙️ المدينة: {userData.city}</Text>
+        <Text style={styles.info}>🏠 العنوان: {userData.address}</Text>
       </View>
-
-      <View style={styles.infoBox}>
-        <Icon name="cake" size={22} color="#555" />
-        <Text style={styles.infoText}>العمر: {user.age} سنة</Text>
-      </View>
-
-      <View style={styles.infoBox}>
-        <Icon name="email" size={22} color="#555" />
-        <Text style={styles.infoText}>البريد: {user.email}</Text>
-      </View>
-
-      <View style={styles.infoBox}>
-        <Icon name="location-on" size={22} color="#555" />
-        <Text style={styles.infoText}>العنوان: {user.address}</Text>
-      </View>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>تحديث كلمة المرور</Text>
-      </TouchableOpacity>
-    </ScrollView>
     </Layout>
   );
-}
+
+};
+
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
-    alignItems: 'center',
     backgroundColor: '#f9f9f9',
-    flexGrow: 1,
+    alignItems: 'center',
   },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 15,
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  profileImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#f4511e',
+  },
+  placeholderImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 60,
+    marginBottom: 20,
+    backgroundColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 40,
+    color: '#888',
+  },
+  label: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
     color: '#333',
   },
-  infoBox: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    width: '100%',
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 10,
-    elevation: 2,
-  },
-  infoText: {
+  info: {
     fontSize: 16,
+    marginVertical: 4,
     color: '#555',
-    marginRight: 10,
-  },
-  button: {
-    marginTop: 30,
-    backgroundColor: '#6E00FE',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });

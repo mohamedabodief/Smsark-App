@@ -75,16 +75,36 @@ class User {
     return new User(adminData);
   }
 
-  async saveToFirestore(imageFile = null) {
-    const docRef = doc(db, 'users', this.uid);
+async saveToFirestore(imageFile = null) {
+  const docRef = doc(db, 'users', this.uid);
 
-    if (imageFile) {
-      const imageUrl = await this.#uploadImage(imageFile);
-      this.image = imageUrl;
-    }
-
-    await setDoc(docRef, { ...this });
+  if (imageFile) {
+    const imageUrl = await this.#uploadImage(imageFile);
+    this.image = imageUrl;
   }
+
+  const userData = {
+    uid: this.uid,
+    type_of_user: this.type_of_user,
+    phone: this.phone,
+    image: this.image,
+    city: this.city,
+    governorate: this.governorate,
+    address: this.address,
+    cli_name: this.cli_name,
+    gender: this.gender,
+    age: this.age,
+    org_name: this.org_name,
+    type_of_organization: this.type_of_organization,
+    adm_name: this.adm_name,
+    profile_completed: this.profile_completed || false,
+    created_at: this.created_at || new Date().toISOString(),
+    fcm_token: this.fcm_token || '',
+  };
+
+  await setDoc(docRef, userData);
+}
+
 
   async updateInFirestore(updates, newImageFile = null) {
     if (

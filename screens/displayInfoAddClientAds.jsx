@@ -4,6 +4,7 @@ import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertis
 import { auth } from '../FireBase/firebaseConfig';
 import { storage } from '../FireBase/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import Layout from '../src/Layout';
 
 const DisplayInfoAddClientAds = ({ route, navigation }) => {
   console.log('DisplayInfoAddClientAds component mounted');
@@ -102,8 +103,9 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <Layout>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>مراجعة بيانات الإعلان</Text>
           <Text style={styles.subtitle}>راجع البيانات قبل الإرسال النهائي</Text>
@@ -214,8 +216,9 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-};
+  </Layout>
+);
+}
 
 const styles = StyleSheet.create({
   safeArea: {
