@@ -28,9 +28,9 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
           <Drawer.Item label="إضافة عقار" onPress={() => handleNavigate('AddProperty')} {...drawerItemProps} />
           <Drawer.Item label="عن الموقع" onPress={() => handleNavigate('About')} {...drawerItemProps} />
           <Drawer.Item label="الصفحة الشخصية" onPress={() => handleNavigate('profile')} {...drawerItemProps} />
-          <Drawer.Item label="تواصل معنا" onPress={() => handleNavigate('Contact')} {...drawerItemProps} />
+          {/* <Drawer.Item label="تواصل معنا" onPress={() => handleNavigate('Contact')} {...drawerItemProps} /> */}
           <Drawer.Item label="المفضلة" icon="heart" onPress={() => handleNavigate('Favorite')} {...drawerItemProps} />
-          <Drawer.Item label="تبديل الثيم" icon="theme-light-dark" onPress={toggleMode} {...drawerItemProps} />
+          {/* <Drawer.Item label="تبديل الثيم" icon="theme-light-dark" onPress={toggleMode} {...drawerItemProps} /> */}
         </Drawer.Section>
       </ScrollView>
     </View>

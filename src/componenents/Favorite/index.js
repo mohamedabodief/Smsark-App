@@ -61,6 +61,7 @@ const FavoritesScreen = () => {
           data={favorites}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
+          contentContainerStyle={{ marginLeft: 10 }}
           ListEmptyComponent={
             <Text style={styles.empty}>لا يوجد إعلانات مفضلة</Text>
           }
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 7,
     textAlign: 'center',
   },
   empty: {
