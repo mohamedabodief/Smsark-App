@@ -50,12 +50,26 @@ export default class ClientAdvertisement {
     await deleteDoc(docRef);
   }
 
-  static async getById(id) {
-    const docRef = doc(db, 'ClientAdvertisements', id);
-    const snapshot = await getDoc(docRef);
-    if (!snapshot.exists()) return null;
-    return new ClientAdvertisement({ id: snapshot.id, ...snapshot.data() });
+  static async #handleExpiry(data) {
+    const now = Date.now();
+    if (data.ads === true && data.adExpiryTime && data.adExpiryTime <= now) {
+      data.ads = false;
+      data.adExpiryTime = null;
+      const docRef = doc(db, "ClientAdvertisements", data.id);
+      await updateDoc(docRef, { ads: false, adExpiryTime: null });
+    }
+    return new ClientAdvertisement(data);
   }
+
+  static async getById(id) {
+  const docRef = doc(db, 'ClientAdvertisements', id);
+  const snapshot = await getDoc(docRef);
+  if (snapshot.exists()) {
+    const data = await ClientAdvertisement.#handleExpiry(snapshot.data());
+    return { ...data, id }; // ✅ لازم ترجع id هنا
+  }
+  return null;
+}
 
   static subscribeAll(callback) {
     const q = query(collection(db, 'ClientAdvertisements'));

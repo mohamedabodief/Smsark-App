@@ -151,6 +151,7 @@ const DeveloperPage = () => {
             ads.map((ad, indx) => (
               <SearchCard
                 key={indx}
+                id={ad.id}
                 location={`${ad.location?.governorate || ''} ${ad.location?.city || ''}`.trim() || 'غير محدد'}
                 name={ad.developer_name || 'غير محدد'}
                 price={`من ${ad.price_start_from || 0} إلى ${ad.price_end_to || 0}`}

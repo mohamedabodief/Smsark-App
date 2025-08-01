@@ -182,6 +182,7 @@ const SellPage = () => {
             ads.map((ad, indx) => (
               <SearchCard
                 key={indx}
+                id={ad.id}
                 location={`${ad.governorate || ''} ${ad.city || ''}`.trim() || 'غير محدد'}
                 name={ad.title || 'غير محدد'}
                 price={ad.price || 'غير محدد'}

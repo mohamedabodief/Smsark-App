@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import FavoriteButton from '../FavoriteButton';
 import { useNavigation } from '@react-navigation/native';
-
+import { auth } from '../../../FireBase/firebaseConfig';
 export default function DevelopmentCard({ item }) {
     const navigation = useNavigation();
-
+    console.log(item)
     if (!item) {
         return (
             <View style={styles.card}>
@@ -46,7 +46,11 @@ export default function DevelopmentCard({ item }) {
                 </Text>
             </View>
             {/* <View style={styles.favoriteIcon}> */}
-                <FavoriteButton id={item.id} type="development" />
+            <FavoriteButton
+                advertisementId={item.id}
+                userId={auth.currentUser?.uid}
+            />
+            
             {/* </View> */}
         </TouchableOpacity>
     );
@@ -76,22 +80,22 @@ const styles = StyleSheet.create({
         color: '#444',
         marginTop: 4,
         lineHeight: 18,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
 
     price: {
         color: '#1976D2',
         fontWeight: 'bold',
         fontSize: 16,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
     name: {
         fontSize: 15,
         marginTop: 4,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
     model: {
         fontSize: 13,

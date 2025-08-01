@@ -150,6 +150,7 @@ const FinancingPage = () => {
             ads.map((ad, indx) => (
               <SearchCard
                 key={indx}
+                id={ad.id}
                 location={null}
                 name={ad.org_name || ad.title || 'غير محدد'}
                 price={`من ${ad.start_limit || 0} إلى ${ad.end_limit || 0}`}
@@ -158,6 +159,7 @@ const FinancingPage = () => {
                   ad.images?.[0] ||
                   'https://upload.wikimedia.org/wikipedia/commons/4/45/WilderBuildingSummerSolstice.jpg'
                 }
+                // navigation={navigation}
               />
             ))
           )}
