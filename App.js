@@ -37,7 +37,7 @@ import AddAdFin from './src/componenents/FinAddAdsForm';
 import MyAdsScreen from './screens/showMyAds/showMyAdsClient.jsx';
 import OrganizationDetailsScreen from './screens/LoginAndRegister/OrganizationDetailsScreen.js';
 import SearchPage from './screens/SearchPage.jsx';
-
+import { auth } from './FireBase/firebaseConfig';
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -66,9 +66,7 @@ function MainStackNavigator() {
       <Stack.Screen name="Developer" component={DeveloperPage} />
       <Stack.Screen name="Financing" component={FinancingPage} />
       <Stack.Screen name="Search" component={SearchPage} />
-      <Stack.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
-      <Stack.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
-      <Stack.Screen name="ClientDetails" component={DetailsForClient} />
+
     </Stack.Navigator>
   );
 }
@@ -76,10 +74,19 @@ function MainStackNavigator() {
 // Drawer Navigator
 function AppDrawer({ toggleMode }) {
   const dispatch = useDispatch();
-
+  const [isReady, setIsReady] = useState(false);
   useEffect(() => {
-    dispatch(loadFavoritesAsync());
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(loadFavoritesAsync());
+      }
+    });
+
+    return () => unsubscribe();
   }, [dispatch]);
+
+
+
 
   return (
     <Drawer.Navigator
@@ -155,6 +162,10 @@ export default function App() {
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="MainApp">{() => <AppDrawer toggleMode={toggleMode} />}</Stack.Screen>
             <Stack.Screen name="Register" component={RegisterStack} />
+
+            <Stack.Screen name="detailsForFinancingAds" component={DetailsForFinancingAds} />
+            <Stack.Screen name="DevelopmentDetails" component={DetailsForDevelopment} />
+            <Stack.Screen name="ClientDetails" component={DetailsForClient} />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

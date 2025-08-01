@@ -1,30 +1,37 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-
-const SearchCard = ({ name, price, imageUrl, location, type }) => {
+import FavoriteButton from '../../src/Homeparts/FavoriteButton';
+const SearchCard = ({ name, price, imageUrl, location, type, id }) => {
   return (
     <TouchableOpacity style={styles.card}>
-          <View style={styles.imageWrapper} >
-    <Image source={{ uri: imageUrl }} style={styles.image} height={'100%'}/>
-    <TouchableOpacity style={styles.heartIcon}>
-      <FontAwesome name="heart-o" size={20} color="#fff" />
-    </TouchableOpacity>
-  </View>
+      <View style={styles.imageWrapper} >
+        <Image source={{ uri: imageUrl }} style={styles.image} height={'100%'} />
+        <TouchableOpacity style={styles.heartIcon}>
+          <FontAwesome name="heart-o" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.info}>
         <View style={styles.typeContainer}>
           <Text style={styles.type}>{type}</Text>
         </View>
         <Text style={styles.name}>{name}</Text>
-        {location && (
+        {/* {location && (
         <Text style={styles.location}>
           <MaterialIcons name="location-pin" size={14} color="#999" /> {location}
         </Text>
+        )} */}
+        {location && (
+          <Text style={styles.location}>
+            <MaterialIcons name="location-pin" size={14} color="#999" />
+            {typeof location === 'string' ? location : `${location?.governorate || ''} - ${location?.city || ''}`}
+          </Text>
         )}
         <View style={styles.footer}>
           <Text style={styles.price}>${price} <Text style={styles.perNight}></Text></Text>
         </View>
       </View>
+      <FavoriteButton advertisementId={id} />
     </TouchableOpacity>
   );
 };
@@ -38,12 +45,12 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     marginHorizontal: 5,
     elevation: 3,
-    direction:'rtl'
+    direction: 'rtl'
   },
   image: {
-    width: '100%', 
-  height: '100%',
-  resizeMode: 'cover',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   info: {
     flex: 1,
@@ -89,20 +96,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   imageWrapper: {
- position: 'relative',
- width: 120, 
-  height: 130,
-  overflow: 'hidden',
-},
+    position: 'relative',
+    width: 120,
+    height: 130,
+    overflow: 'hidden',
+  },
 
-heartIcon: {
-  position: 'absolute',
-  top: 8,
-  right: 8,
-  borderRadius: 20,
-  padding: 6,
-  zIndex: 10,
-},
+  heartIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    borderRadius: 20,
+    padding: 6,
+    zIndex: 10,
+  },
 });
 
 export default SearchCard;

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import FavoriteButton from '../FavoriteButton';
 import { useNavigation } from '@react-navigation/native';
-
+import { auth } from '../../../FireBase/firebaseConfig';
 export default function FinancingCard({ item }) {
     const navigation = useNavigation();
     // console.log(item);
@@ -37,7 +37,11 @@ export default function FinancingCard({ item }) {
 
             </View>
             {/* <View style={styles.favoriteIcon}> */}
-                <FavoriteButton id={item.id} type="financing" />
+            <FavoriteButton
+                advertisementId={item.id}
+                userId={auth.currentUser?.uid}
+            />
+
             {/* </View> */}
 
         </TouchableOpacity>
@@ -61,29 +65,29 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 12,
-        
+
     },
     description: {
         fontSize: 13,
         color: '#444',
         marginTop: 4,
         lineHeight: 18,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
 
     price: {
         color: '#1976D2',
         fontWeight: 'bold',
         fontSize: 16,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
     name: {
         fontSize: 15,
         marginTop: 4,
-        textAlign: 'right',      
-        writingDirection: 'rtl',   
+        textAlign: 'right',
+        writingDirection: 'rtl',
     },
     model: {
         fontSize: 13,
