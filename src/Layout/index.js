@@ -7,7 +7,6 @@ import * as SecureStore from 'expo-secure-store';
 import Nav from '../componenents/Nav';
 import FooterNav from '../componenents/Footer';
 
-// دالة لحفظ التوكن
 async function saveToken(key, value) {
   try {
     await SecureStore.setItemAsync(key, value);
@@ -16,8 +15,6 @@ async function saveToken(key, value) {
     console.error('Error saving token:', error);
   }
 }
-
-// دالة لاسترجاع التوكن
 async function getToken(key) {
   try {
     const token = await SecureStore.getItemAsync(key);
@@ -43,7 +40,6 @@ export default function Layout({ children, showDrawer = false }) {
         console.log('User authenticated:', user.uid);
         await saveToken('userToken', user.accessToken);
         setIsAuthenticated(true);
-        // لا تنتقل إلى Home إذا كانت الشاشة الحالية ليست SignIn أو Login
         if (['SignIn', 'Login'].includes(route.name)) {
           console.log('Navigating to Home from:', route.name);
           navigation.navigate('Home');
@@ -85,11 +81,8 @@ export default function Layout({ children, showDrawer = false }) {
   }
 
   if (!isAuthenticated && !['SignIn', 'Login'].includes(route.name)) {
-    // لا نعرض شيء إذا تم التوجيه إلى SignIn
     return null;
   }
-
-  // الـ Layout الأصلي
   return (
     <View style={styles.container}>
       <Nav />

@@ -145,4 +145,29 @@ export default class HomepageAdvertisement {
       callback(ads);
     });
   }
+  static async #handleExpiry(data) {
+    const now = Date.now();
+    if (data.ads === true && data.adExpiryTime && data.adExpiryTime <= now) {
+      data.ads = false;
+      data.adExpiryTime = null;
+      const docRef = doc(db, 'HomepageAdvertisements', data.id);
+      await updateDoc(docRef, { ads: false, adExpiryTime: null });
+    }
+    return new HomepageAdvertisement(data);
+  }
+  static subscribeActiveAds(callback) {
+    const q = query(
+      collection(db, 'HomepageAdvertisements'),
+      where('ads', '==', true)
+    );
+    return onSnapshot(q, async (snap) => {
+      const ads = [];
+      for (const doc of snap.docs) {
+        const ad = await HomepageAdvertisement.#handleExpiry(doc.data());
+        if (ad) ads.push(ad);
+      }
+      callback(ads);
+    });
+  }
 }
+

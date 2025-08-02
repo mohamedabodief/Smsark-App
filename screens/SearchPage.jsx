@@ -62,7 +62,6 @@ const SearchPage = ({ navigation }) => {
   const filterAds = (allAds) => {
     return allAds.filter((ad) => {
       const text = cleanText(searchText);
-
       let matchesSearch = true;
 
       if (text !== '') {
@@ -73,7 +72,6 @@ const SearchPage = ({ navigation }) => {
           const descriptionMatch = ad.description && cleanText(ad.description).includes(text);
           const typeMatch = ad.type && cleanText(ad.type).includes(text);
           const adTypeMatch = ad.ad_type && cleanText(ad.ad_type).includes(text);
-
           matchesSearch = governorateMatch || cityMatch || titleMatch || descriptionMatch || typeMatch || adTypeMatch;
         } else if (ad instanceof RealEstateDeveloperAdvertisement) {
           const governorateMatch = ad.location?.governorate && cleanText(ad.location.governorate).includes(text);
@@ -81,20 +79,17 @@ const SearchPage = ({ navigation }) => {
           const nameMatch = ad.developer_name && cleanText(ad.developer_name).includes(text);
           const descriptionMatch = ad.description && cleanText(ad.description).includes(text);
           const projectTypesMatch = Array.isArray(ad.project_types) && ad.project_types.some(type => cleanText(type).includes(text));
-
           matchesSearch = governorateMatch || cityMatch || nameMatch || descriptionMatch || projectTypesMatch;
         } else if (ad instanceof FinancingAdvertisement) {
           const titleMatch = ad.title && cleanText(ad.title).includes(text);
           const descriptionMatch = ad.description && cleanText(ad.description).includes(text);
           const orgNameMatch = ad.org_name && cleanText(ad.org_name).includes(text);
           const typeOfUserMatch = ad.type_of_user && cleanText(ad.type_of_user).includes(text);
-
           matchesSearch = titleMatch || descriptionMatch || orgNameMatch || typeOfUserMatch;
         }
       }
 
       let matchesStatus = !statusValue;
-
       if (statusValue) {
         if (statusValue === 'بيع' && ad instanceof ClientAdvertisement) {
           const adTypeClean = cleanText(ad.ad_type);
@@ -210,6 +205,7 @@ const SearchPage = ({ navigation }) => {
             ads.map((ad, index) => (
               <SearchCard
                 key={index}
+                id={ad.id}
                 location={
                   ad instanceof ClientAdvertisement
                     ? `${ad.governorate || ''} ${ad.city || ''}`.trim() || 'غير محدد'
@@ -232,7 +228,6 @@ const SearchPage = ({ navigation }) => {
                   ad.images?.[0] ||
                   'https://upload.wikimedia.org/wikipedia/commons/4/45/WilderBuildingSummerSolstice.jpg'
                 }
-                id={ad.id}
                 source={
                   ad instanceof ClientAdvertisement
                     ? 'client'

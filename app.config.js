@@ -28,9 +28,10 @@ export default {
     web: {
       favicon: './assets/favicon.png',
     },
+    plugins: ['expo-font'],
     extra: {
       eas: {
-        projectId: '08550ff4-ff87-4a66-9950-304176c949d2', // معرف المشروع من EAS
+        projectId: '08550ff4-ff87-4a66-9950-304176c949d2', 
       },
       FIREBASE_API_KEY: 'AIzaSyBZDFrAARgCTXF_L5KFqD_EOQm_5nF_uTg',
       AUTH_DOMAIN: 'smsark-app.firebaseapp.com',
@@ -53,5 +54,6 @@ export default {
         },
       ],
     ],
+    
   },
 };

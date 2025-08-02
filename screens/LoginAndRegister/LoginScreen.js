@@ -14,20 +14,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import loginWithEmailAndPassword from '../../FireBase/authService/loginWithEmailAndPassword';
 import { AuthContext } from '../../context/AuthContext';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
     if (!email || !password) {
       console.log('LoginScreen: Email or password missing');
-      setMessage('❌ يرجى إدخال البريد الإلكتروني وكلمة المرور');
-      setTimeout(() => setMessage(''), 4000);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        position: 'top',
+        visibilityTime: 4000,
+      });
       return;
     }
 
@@ -41,7 +46,13 @@ export default function LoginScreen() {
       try {
         await login(result.user);
         console.log('LoginScreen: AuthContext login called');
-        setMessage('✅ تم تسجيل الدخول بنجاح 🎉');
+        Toast.show({
+          type: 'success',
+          text1: 'نجاح',
+          text2: 'تم تسجيل الدخول بنجاح ',
+          position: 'top',
+          visibilityTime: 4000,
+        });
         console.log('LoginScreen: Navigation object available:', !!navigation);
         console.log('LoginScreen: Navigating to MainApp with user:', result.user.uid);
         navigation.dispatch(
@@ -57,13 +68,23 @@ export default function LoginScreen() {
         );
       } catch (error) {
         console.error('LoginScreen: Error during login or navigation:', error);
-        setMessage('❌ خطأ أثناء تسجيل الدخول أو التنقل');
-        setTimeout(() => setMessage(''), 4000);
+        Toast.show({
+          type: 'error',
+          text1: 'خطأ',
+          text2: 'خطأ أثناء تسجيل الدخول أو التنقل',
+          position: 'top',
+          visibilityTime: 4000,
+        });
       }
     } else {
       console.log('LoginScreen: Login failed, error:', result.error);
-      setMessage(`❌ ${result.error}`);
-      setTimeout(() => setMessage(''), 4000);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: result.error,
+        position: 'top',
+        visibilityTime: 4000,
+      });
     }
   };
 
@@ -79,20 +100,6 @@ export default function LoginScreen() {
       >
         <View style={styles.overlay} />
         <View style={styles.formContainer}>
-          {message ? (
-            <View
-              style={{
-                backgroundColor: message.startsWith('✅') ? 'green' : 'red',
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 5,
-                width: '100%',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ color: 'white', textAlign: 'center' }}>{message}</Text>
-            </View>
-          ) : null}
           <Text style={styles.title}>تسجيل الدخول</Text>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>البريد الإلكتروني</Text>

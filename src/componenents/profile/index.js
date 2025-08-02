@@ -1,97 +1,166 @@
-// src/components/Profile.js
-
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, Image, ScrollView } from 'react-native';
+import { auth } from '../../../FireBase/firebaseConfig';
+import User from '../../../FireBase/modelsWithOperations/User';
 import Layout from '../../Layout';
-export default function ProfileScreen() {
-  // بيانات وهمية
-  const user = {
-    name: 'محمد عبد الله',
-    age: 28,
-    gender: 'ذكر',
-    email: 'mohamed@example.com',
-    address: 'القاهرة، مصر',
-    image: 'https://i.pravatar.cc/200', // صورة رمزية عشوائية
-  };
+const ProfileScreen = () => {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUserUid = auth.currentUser?.uid;
+        if (!currentUserUid) return;
+        // console.log("✅ Current User UID:", currentUserUid);
+        const user = await User.getByUid(currentUserUid);
+        setUserData(user);
+      } catch (err) {
+        console.error('❌ Error fetching user data:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#f4511e" />
+      </View>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <View style={styles.centered}>
+        <Text>لم يتم العثور على بيانات المستخدم.</Text>
+      </View>
+    );
+  }
 
   return (
     <Layout>
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri: user.image }} style={styles.avatar} />
-      <Text style={styles.name}>{user.name}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.card}>
+          {userData.image ? (
+            <Image source={{ uri: userData.image }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.placeholderImage}>
+              <Text style={styles.placeholderText}>👤</Text>
+            </View>
+          )}
 
-      <View style={styles.infoBox}>
-        <Icon name="person" size={22} color="#555" />
-        <Text style={styles.infoText}>النوع: {user.gender}</Text>
-      </View>
+          {userData.type_of_user === 'client' && (
+            <>
+              <Text style={styles.info}>👤 الاسم: {userData.cli_name}</Text>
+              <Text style={styles.info}>🎂 العمر: {userData.age}</Text>
+              <Text style={styles.info}>🚻 الجنس: {userData.gender}</Text>
+            </>
+          )}
+          {userData.type_of_user === 'organization' && (
+            <>
+              <Text style={styles.userType}> {userData.org_name}</Text>
+              <Text style={styles.info}>🏢 النوع الحساب: {userData.type_of_user}</Text>
+              <Text style={styles.info}>📄 نوع المؤسسة: {userData.type_of_organization}</Text>
+            </>
+          )}
+          {userData.type_of_user === 'admin' && (
+            <Text style={styles.info}>👑 الاسم: {userData.adm_name}</Text>
+          )}
 
-      <View style={styles.infoBox}>
-        <Icon name="cake" size={22} color="#555" />
-        <Text style={styles.infoText}>العمر: {user.age} سنة</Text>
-      </View>
+          <View style={styles.divider} />
 
-      <View style={styles.infoBox}>
-        <Icon name="email" size={22} color="#555" />
-        <Text style={styles.infoText}>البريد: {user.email}</Text>
-      </View>
+          <Text style={styles.info}>
+            📞 رقم الهاتف: <Text style={styles.phone}>{userData.phone}</Text>
+          </Text>
 
-      <View style={styles.infoBox}>
-        <Icon name="location-on" size={22} color="#555" />
-        <Text style={styles.infoText}>العنوان: {user.address}</Text>
-      </View>
-
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>تحديث كلمة المرور</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={styles.info}>📍 المحافظة: {userData.governorate}</Text>
+          <Text style={styles.info}>🏙️ المدينة: {userData.city}</Text>
+          <Text style={styles.info}>🏠 العنوان: {userData.address}</Text>
+        </View>
+      </ScrollView>
     </Layout>
   );
 }
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
+  scrollContainer: {
+    paddingVertical: 20,
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    flexGrow: 1,
+    paddingTop: 55,
   },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 15,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-  },
-  infoBox: {
-    flexDirection: 'row-reverse',
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  card: {
+    width: '95%',
     backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    direction: 'rtl',
+  },
+  profileImage: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: '#f4511e',
+    alignSelf: 'center',
+  },
+  placeholderImage: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    alignSelf: 'center',
+
+  },
+  placeholderText: {
+    fontSize: 42,
+    color: '#888',
+  },
+  userType: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#6E00FE',
+    marginBottom: 27,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  info: {
+    fontSize: 18,
+    color: '#444',
+    marginVertical: 4,
+    textAlign: 'left',
+    alignSelf: 'stretch',
+    paddingBottom: 6,
+  },
+  phone: {
+    fontSize: 24,
+    // fontWeight: 'bold',
+    // color: '#000',
+  },
+  divider: {
     width: '100%',
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 10,
-    elevation: 2,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#555',
-    marginRight: 10,
-  },
-  button: {
-    marginTop: 30,
-    backgroundColor: '#6E00FE',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    height: 1,
+    backgroundColor: '#eee',
+    marginVertical: 12,
   },
 });

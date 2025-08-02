@@ -10,7 +10,7 @@ export default function FooterNav() {
   const route = useRoute();
 
   const routes = [
-    { key: 'home', title: 'الرئيسية' },
+    { key: 'Home', title: 'الرئيسية' },
     { key: 'search', title: 'بحث' },
     { key: 'favorite', title: 'المفضلة' },
     { key: 'profile', title: 'حسابي' },
@@ -31,26 +31,52 @@ export default function FooterNav() {
 
   const handleIndexChange = (newIndex) => {
   const screenMap = ['Home', 'Search', 'Favorite', 'profile'];
-  if (screenMap[newIndex] !== route.name) {
-    navigation.navigate(screenMap[newIndex]);
+  const screen = screenMap[newIndex];
+  if (screen === 'Home') {
+      navigation.navigate('MainStack', { screen: 'Home' }); // ← الحل هنا
+    } else {
+      navigation.navigate(screen);
+    }
+  };
+
+  // ✅ مكون مسؤول عن رسم الأيقونات يدويًا
+const renderIcon = ({ route, color, focused }) => {
+  const iconStyle = {
+    backgroundColor: focused ? '#ccc' : 'transparent',
+    padding: 5,
+    borderRadius: 20, 
+  };
+
+  switch (route.key) {
+    case 'Home':
+      return (
+        <View style={iconStyle}>
+          <AntDesign name="home" size={20} color={focused ? '#000' : color} />
+        </View>
+      );
+    case 'search':
+      return (
+        <View style={iconStyle}>
+          <Feather name="search" size={20} color={focused ? '#000' : color} />
+        </View>
+      );
+    case 'favorite':
+      return (
+        <View style={iconStyle}>
+          <AntDesign name="hearto" size={20} color={focused ? '#000' : color} />
+        </View>
+      );
+    case 'profile':
+      return (
+        <View style={iconStyle}>
+          <AntDesign name="user" size={20} color={focused ? '#000' : color} />
+        </View>
+      );
+    default:
+      return null;
   }
 };
 
-  // ✅ مكون مسؤول عن رسم الأيقونات يدويًا
-  const renderIcon = ({ route, color }) => {
-    switch (route.key) {
-      case 'home':
-        return <AntDesign name="home" size={24} color={color} />;
-      case 'search':
-        return <Feather name="search" size={24} color={color} />;
-      case 'favorite':
-        return <AntDesign name="hearto" size={24} color={color} />;
-      case 'profile':
-        return <AntDesign name="user" size={24} color={color} />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <View style={styles.container}>

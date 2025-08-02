@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import FinancingRequest from '../../FireBase/modelsWithOperations/FinancingRequest';
+import FavoriteButton from '../../src/Homeparts/FavoriteButton';
 
 const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelete, showDelete = false, showHeart = true, showRequestsButton = false, isDeleting = false, navigation, ...adData }) => {
   const isDeveloper = source === 'developer';
@@ -83,8 +84,8 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
       return;
     }
     try {
-      navigation.navigate('MainStack', { screen: targetScreen, params: { id } });
-      console.log(`Navigated to MainStack -> ${targetScreen} with id: ${id}`);
+      navigation.navigate(targetScreen, { id }); // التنقل مباشرة إلى الشاشة المستهدفة
+      console.log(`Navigated to ${targetScreen} with id: ${id}`);
     } catch (error) {
       console.error('Navigation error:', error.message || error);
       Alert.alert('خطأ', 'فشل في الانتقال إلى صفحة التفاصيل: ' + (error.message || 'يرجى المحاولة لاحقًا'));
@@ -107,6 +108,7 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
             <FontAwesome name="heart-o" size={20} color="#fff" />
           </TouchableOpacity>
         )}
+        <FavoriteButton advertisementId={id} />
       </View>
       <View style={styles.info}>
         <View style={styles.topRow}>
@@ -131,7 +133,8 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
         <Text style={styles.name}>{fields.name}</Text>
         {fields.location && (
           <Text style={styles.location}>
-            <MaterialIcons name="location-pin" size={14} color="#999" /> {fields.location}
+            <MaterialIcons name="location-pin" size={14} color="#999" />
+            {typeof fields.location === 'string' ? fields.location : `${fields.location?.governorate || ''} - ${fields.location?.city || ''}`}
           </Text>
         )}
         <View style={styles.footer}>
@@ -171,12 +174,12 @@ const styles = StyleSheet.create({
   imageWrapper: {
     position: 'relative',
     width: 120,
-    height: '100%',
+    height: 130,
     overflow: 'hidden',
   },
   image: {
     width: '100%',
-    height: 130,
+    height: '100%',
     resizeMode: 'cover',
   },
   info: {

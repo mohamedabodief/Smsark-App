@@ -12,34 +12,58 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import sendResetPasswordEmail from '../../FireBase/authService/sendResetPasswordEmail';
+import Toast from 'react-native-toast-message';
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
 
   const handleReset = async () => {
     if (!email) {
-      setMessage('❌ يرجى إدخال البريد الإلكتروني');
-      setTimeout(() => setMessage(''), 3000);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'يرجى إدخال البريد الإلكتروني',
+        position: 'top',
+        visibilityTime: 5000,
+        topOffset: 50,
+        text1Style: { fontSize: 16, fontWeight: 'bold', color: 'black' },
+        text2Style: { fontSize: 14, color: 'gray' },
+      });
       return;
     }
 
     const result = await sendResetPasswordEmail(email);
     if (result.success) {
-      setMessage(`✅ تم إرسال رابط إلى ${email} لإعادة تعيين كلمة المرور 🎉`);
-      setTimeout(() => setMessage(''), 3000);
+      Toast.show({
+        type: 'success',
+        text1: 'نجاح',
+        text2: `تم إرسال رابط إلى ${email} لإعادة تعيين كلمة المرور 🎉`,
+        position: 'top',
+        visibilityTime: 5000,
+        topOffset: 50,
+        text1Style: { fontSize: 16, fontWeight: 'bold', color: 'black' },
+        text2Style: { fontSize: 14, color: 'gray' },
+      });
     } else {
-      setMessage('❌ حدث خطأ أثناء محاولة الإرسال. تأكد من صحة البريد الإلكتروني.');
-      setTimeout(() => setMessage(''), 3000);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'حدث خطأ أثناء محاولة الإرسال. تأكد من صحة البريد الإلكتروني.',
+        position: 'top',
+        visibilityTime: 5000,
+        topOffset: 50,
+        text1Style: { fontSize: 16, fontWeight: 'bold', color: '#black' },
+        text2Style: { fontSize: 14, color: '#gray' },
+      });
     }
   };
 
   return (
     <KeyboardAvoidingView
-         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ImageBackground
         source={require('../../assets/bg-sign.jpg')}
@@ -47,20 +71,6 @@ export default function ForgotPasswordScreen() {
       >
         <View style={styles.overlay} />
         <View style={styles.formContainer}>
-          {message ? (
-            <View
-              style={{
-                backgroundColor: message.startsWith('✅') ? 'green' : 'red',
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 5,
-                width: '100%',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ color: 'white', textAlign: 'center' }}>{message}</Text>
-            </View>
-          ) : null}
           <Text style={styles.title}>استعادة كلمة المرور</Text>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>البريد الإلكتروني</Text>
@@ -98,7 +108,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     justifyContent: 'center',
-    alignItems: 'center', // Center horizontally
+    alignItems: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -115,8 +125,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     alignItems: 'flex-end',
-    width: '90%', // Limit width to avoid stretching
-    maxWidth: 400, // Max width for larger screens
+    width: '90%',
+    maxWidth: 400,
   },
   title: {
     fontSize: 28,
@@ -181,6 +191,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     width: '100%',
-    marginRight:90
+    marginRight: 90,
+  },
+});
+
+
+
+const toastStyles = StyleSheet.create({
+  toastContainer: {
+    padding: 15,
+    borderRadius: 8,
+    marginHorizontal: 20,
+    width: '90%',
+    alignItems: 'center',
+    zIndex: 1000, 
+  },
+  toastText: {
+    color: 'black', 
+    textAlign: 'center',
   },
 });

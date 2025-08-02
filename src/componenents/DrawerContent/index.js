@@ -1,12 +1,13 @@
-import { View, StyleSheet } from 'react-native';
-import { Drawer, IconButton, Alert } from 'react-native-paper';
-import { useContext } from 'react';
-import { AuthContext } from '../../../context/AuthContext';
+import React, { useContext } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Drawer, IconButton, useTheme, Text, Alert } from 'react-native-paper';
 import { CommonActions } from '@react-navigation/native';
+import { AuthContext } from '../../../context/AuthContext';
 
-export default function DrawerContent({ navigation, toggleMode, userType }) {
+export default function DrawerContent({ navigation, toggleMode, unreadCount, totalUnreadMessages, userType }) {
   const { logout, user } = useContext(AuthContext);
   const userId = user && user.uid ? user.uid : 'guest';
+  const { colors } = useTheme();
 
   console.log('DrawerContent: Rendering with userId:', userId);
 
@@ -38,51 +39,74 @@ export default function DrawerContent({ navigation, toggleMode, userType }) {
     }
   };
 
-  return (
-    <View style={styles.drawer}>
-      <IconButton icon="close" onPress={() => navigation.closeDrawer()} />
+  const drawerItemProps = {
+    labelStyle: { color: colors.onBackground },
+    style: { borderBottomWidth: 0.5, borderBottomColor: colors.outlineVariant || colors.border || '#ccc' },
+  };
 
-      <Drawer.Section title="القائمة">
-        <Drawer.Item
-          label="الصفحة الرئيسية"
-          onPress={() => handleNavigate('MainStack', { screen: 'Home' })}
-        />
-        <Drawer.Item
-          label="إضافة عقار"
-          onPress={() => handleNavigate('AddClientAds')}
-        />
-        <Drawer.Item
-          label="عن الموقع"
-          onPress={() => handleNavigate('About')}
-        />
-        <Drawer.Item
-          label="الصفحة الشخصية"
-          onPress={() => handleNavigate('profile')}
-        />
-        <Drawer.Item
-          label="إعلاناتي"
-          onPress={() => handleNavigate('MyAds')}
-        />
-        <Drawer.Item
-          label="المفضلة"
-          icon="heart"
-          onPress={() => handleNavigate('Favorite')}
-        />
-        <Drawer.Item
-          label="طلباتي"
-          onPress={() => handleNavigate('MyOrders')}
-        />
-        <Drawer.Item
-          label="تبديل الثيم"
-          icon="theme-light-dark"
-          onPress={toggleMode}
-        />
-        <Drawer.Item
-          label="تسجيل الخروج"
-          icon="logout"
-          onPress={handleLogout}
-        />
-      </Drawer.Section>
+  return (
+    <View style={[styles.drawer, { backgroundColor: colors.background }]}>
+      <ScrollView>
+        <IconButton icon="close" onPress={() => navigation.closeDrawer()} iconColor={colors.onBackground} />
+        <Drawer.Section title={<Text style={[styles.title, { color: colors.onBackground }]}>القائمة</Text>}>
+          <Drawer.Item
+            label="الصفحة الرئيسية"
+            onPress={() => handleNavigate('MainStack', { screen: 'Home' })}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+            label="إضافة عقار"
+            onPress={() => handleNavigate('AddClientAds')}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+            label="عن الموقع"
+            onPress={() => handleNavigate('About')}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+            label="الصفحة الشخصية"
+            onPress={() => handleNavigate('profile')}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+            label="إعلاناتي"
+            onPress={() => handleNavigate('MyAds')}
+            {...drawerItemProps}
+          />
+       
+          <Drawer.Item
+            label="طلباتي"
+            onPress={() => handleNavigate('MyOrders')}
+            {...drawerItemProps}
+          />
+
+             <Drawer.Item
+            label="المفضلة"
+            icon="heart"
+            onPress={() => handleNavigate('Favorite')}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+            label="تبديل الثيم"
+            icon="theme-light-dark"
+            onPress={toggleMode}
+            {...drawerItemProps}
+          />
+          <Drawer.Item
+  label="تواصل معنا"
+   icon="headset"
+  onPress={() => handleNavigate('ContactUs')}
+  {...drawerItemProps}
+/>
+          <Drawer.Item
+            label="تسجيل الخروج"
+            icon="logout"
+            onPress={handleLogout}
+            {...drawerItemProps}
+          />
+        </Drawer.Section>
+      </ScrollView>
     </View>
   );
 }
@@ -90,11 +114,10 @@ export default function DrawerContent({ navigation, toggleMode, userType }) {
 const styles = StyleSheet.create({
   drawer: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  badge: {
-    alignSelf: 'center',
-    backgroundColor: '#6E00FE',
-    color: '#fff',
+  title: {
+    fontSize: 18,
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
 });

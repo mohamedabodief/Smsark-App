@@ -128,9 +128,9 @@ const AboutUsScreen = () => {
           <TouchableOpacity onPress={handleBrowseProperties} style={styles.primaryButton}>
             <Text style={styles.buttonText}>تصفح العقارات</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleContactUs} style={styles.outlinedButton}>
+          {/* <TouchableOpacity onPress={handleContactUs} style={styles.outlinedButton}>
             <Text style={styles.outlinedText}>تواصل معنا</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
     right: 20,
     alignItems: 'flex-end',
   },
-  companyName: { fontSize: 30, fontWeight: 'bold', color: '#fff' },
-  slogan: { fontSize: 18, color: '#fff', marginBottom: 10 },
+  companyName: { fontSize: 30, fontWeight: 'bold', color: '#673ab7' },
+  slogan: { fontSize: 18, color: '#673ab7', marginBottom: 10 },
   buttonRow: { flexDirection: 'row', gap: 10 },
   primaryButton: {
     backgroundColor: '#673ab7',

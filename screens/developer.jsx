@@ -62,9 +62,7 @@ const DeveloperPage = ({ navigation }) => {
 
       const matchesReviewStatus = true;
 
-      const finalResult = matchesSearch && matchesType && matchesPrice && matchesReviewStatus;
-
-      return finalResult;
+      return matchesSearch && matchesType && matchesPrice && matchesReviewStatus;
     });
   };
 
@@ -160,6 +158,7 @@ const DeveloperPage = ({ navigation }) => {
               ads.map((ad, index) => (
                 <SearchCard
                   key={index}
+                  id={ad.id}
                   location={`${ad.location?.governorate || ''} ${ad.location?.city || ''}`.trim() || 'غير محدد'}
                   name={ad.developer_name || 'غير محدد'}
                   price={`من ${ad.price_start_from || 0} إلى ${ad.price_end_to || 0}`}
@@ -168,7 +167,6 @@ const DeveloperPage = ({ navigation }) => {
                     ad.images?.[0] ||
                     'https://upload.wikimedia.org/wikipedia/commons/4/45/WilderBuildingSummerSolstice.jpg'
                   }
-                  id={ad.id}
                   source="developer"
                   navigation={navigation}
                 />
@@ -212,6 +210,7 @@ const DeveloperPage = ({ navigation }) => {
                     setSearchText('');
                     setPriceFrom('');
                     setPriceTo('');
+                    setModalVisible(false);
                   }}
                   style={[styles.applyButton, { backgroundColor: '#ccc', marginTop: 10 }]}
                 >

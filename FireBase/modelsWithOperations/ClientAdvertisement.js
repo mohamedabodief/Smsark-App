@@ -106,12 +106,26 @@ export default class ClientAdvertisement {
     await this.update({ status: 'pending', rejection_reason: '', admin_note: '', reviewStatus: 'pending' });
   }
 
+  static async #handleExpiry(data) {
+    const now = Date.now();
+    if (data.ads === true && data.adExpiryTime && data.adExpiryTime <= now) {
+      data.ads = false;
+      data.adExpiryTime = null;
+      const docRef = doc(db, 'ClientAdvertisements', data.id);
+      await updateDoc(docRef, { ads: false, adExpiryTime: null });
+    }
+    return new ClientAdvertisement(data);
+  }
+
   static async getById(id) {
     try {
       const docRef = doc(db, 'ClientAdvertisements', id);
       const snapshot = await getDoc(docRef);
-      if (!snapshot.exists()) return null;
-      return new ClientAdvertisement({ id: snapshot.id, ...snapshot.data() });
+      if (snapshot.exists()) {
+        const data = await ClientAdvertisement.#handleExpiry({ id: snapshot.id, ...snapshot.data() });
+        return data;
+      }
+      return null;
     } catch (error) {
       console.error('Error getting advertisement by ID:', error);
       throw error;

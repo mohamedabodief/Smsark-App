@@ -8,11 +8,9 @@ const SimpleHeroSlider = () => {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    // 🔗 جلب الإعلانات من Firebase
-    const unsubscribe = HomepageAdvertisement.subscribe((adsData) => {
-      // بس الإعلانات اللي حالتها approved
-      const approvedAds = adsData.filter((ad) => ad.status === 'approved');
-      setAds(approvedAds);
+    const unsubscribe = HomepageAdvertisement.subscribeActiveAds((adsData) => {
+      // console.log('All Ads:', adsData.map(ad => ad.image));
+      setAds(adsData); // تم حذف فلترة approved
       setIndex(0);
     });
 
