@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "165621685338",
+    "project_id": "smsark-alaqary",
+    "storage_bucket": "smsark-alaqary.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165621685338:android:1cec5888597039cce9cc63",
+        "android_client_info": {
+          "package_name": "com.mohamedabodief.smsarkapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV9eG09jjtqq-ovq7laXiBDxlhT9hPz50"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

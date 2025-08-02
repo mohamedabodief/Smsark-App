@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   View,
   TextInput,
-  Alert,
   StyleSheet,
   ImageBackground,
   KeyboardAvoidingView,
@@ -12,43 +11,87 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import loginWithEmailAndPassword from '../../FireBase/authService/loginWithEmailAndPassword';
+import { AuthContext } from '../../context/AuthContext';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setMessage('❌ يرجى إدخال البريد الإلكتروني وكلمة المرور');
-      setTimeout(() => setMessage(''), 4000);
+      console.log('LoginScreen: Email or password missing');
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        position: 'top',
+        visibilityTime: 4000,
+      });
       return;
     }
 
     setLoading(true);
+    console.log('LoginScreen: Attempting login with email:', email);
     const result = await loginWithEmailAndPassword(email, password);
     setLoading(false);
 
     if (result.success) {
-      setMessage('✅ تم تسجيل الدخول بنجاح 🎉');
-      setTimeout(() => {
-        setMessage('');
-        navigation.replace('MainApp');
-      }, 2000);
+      console.log('LoginScreen: Login successful, user:', result.user.uid);
+      try {
+        await login(result.user);
+        console.log('LoginScreen: AuthContext login called');
+        Toast.show({
+          type: 'success',
+          text1: 'نجاح',
+          text2: 'تم تسجيل الدخول بنجاح ',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        console.log('LoginScreen: Navigation object available:', !!navigation);
+        console.log('LoginScreen: Navigating to MainApp with user:', result.user.uid);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'MainApp',
+                params: { screen: 'MainStack', params: { screen: 'Home' } },
+              },
+            ],
+          })
+        );
+      } catch (error) {
+        console.error('LoginScreen: Error during login or navigation:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'خطأ',
+          text2: 'خطأ أثناء تسجيل الدخول أو التنقل',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+      }
     } else {
-      setMessage(`❌ ${result.error}`);
-      setTimeout(() => setMessage(''), 4000);
+      console.log('LoginScreen: Login failed, error:', result.error);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: result.error,
+        position: 'top',
+        visibilityTime: 4000,
+      });
     }
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ImageBackground
@@ -57,20 +100,6 @@ export default function LoginScreen() {
       >
         <View style={styles.overlay} />
         <View style={styles.formContainer}>
-          {message ? (
-            <View
-              style={{
-                backgroundColor: message.startsWith('✅') ? 'green' : 'red',
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 5,
-                width: '100%',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ color: 'white', textAlign: 'center' }}>{message}</Text>
-            </View>
-          ) : null}
           <Text style={styles.title}>تسجيل الدخول</Text>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>البريد الإلكتروني</Text>
@@ -114,15 +143,11 @@ export default function LoginScreen() {
             <Text style={styles.loginText}>هل نسيت كلمة المرور؟</Text>
           </TouchableOpacity>
           <View style={styles.registerContainer}>
-          
-             <TouchableOpacity
+            <TouchableOpacity
               onPress={() => navigation.navigate('Register', { screen: 'EmailPassword' })}
             >
-              <Text style={styles.loginText}>ليس لديك حساب انشا حساب</Text>
-              
+              <Text style={styles.loginText}>ليس لديك حساب؟ إنشاء حساب</Text>
             </TouchableOpacity>
-             
-         
           </View>
         </View>
       </ImageBackground>
@@ -219,13 +244,12 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: '#5A00D6',
-    marginRight:90
+    marginRight: 90,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 10,
-  marginRight:-10
- 
+    marginRight: -10,
   },
 });

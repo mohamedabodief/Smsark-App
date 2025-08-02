@@ -182,10 +182,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   disabledButton: {
-  backgroundColor: '#CBB8F0', // موف فاتح
+  backgroundColor: '#CBB8F0',
 },
 
 disabledButtonText: {
-  color: '#f3ebff', // أبيض باهت
+  color: '#f3ebff',
 },
 });

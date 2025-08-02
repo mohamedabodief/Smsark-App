@@ -57,6 +57,8 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     setLoading(true);
     try {
       console.log('Starting handleSubmit with userId:', userId);
+
+      // تحديث نوع المستخدم في Firestore
       await setDoc(
         doc(db, 'users', userId),
         {
@@ -66,6 +68,8 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         { merge: true }
       );
       console.log('User type updated to organization for UID:', userId);
+
+      // تحويل الصور إلى كائنات File
       let imageFiles = [];
       if (images && images.length > 0) {
         imageFiles = await Promise.all(
@@ -92,6 +96,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
       console.log('Image Files (sent to Firestore):', imageFiles);
 
+      // إعداد بيانات الإعلان
       const adData = {
         userId: userId,
         title: formData.title || '',
@@ -103,7 +108,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         interest_rate_upto_5: formData.interest_rate_upto_5 ? parseFloat(formData.interest_rate_upto_5) : null,
         interest_rate_upto_10: formData.interest_rate_upto_10 ? parseFloat(formData.interest_rate_upto_10) : null,
         interest_rate_above_10: formData.interest_rate_above_10 ? parseFloat(formData.interest_rate_above_10) : null,
-        images: [], 
+        images: [], // سيتم تحديثها بواسطة FinancingAdvertisement.save
         reviewStatus: 'pending',
         ads: false,
         adExpiryTime: null,
@@ -114,6 +119,8 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
       };
 
       console.log('Ad Data prepared:', adData);
+
+      // إنشاء كائن FinancingAdvertisement وحفظ الإعلان
       console.log('Creating FinancingAdvertisement instance');
       const financingAd = new FinancingAdvertisement(adData);
       console.log('Calling save method with imageFiles:', imageFiles);
@@ -122,13 +129,14 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
       Alert.alert(
         'تم الإرسال بنجاح',
+        `تم إرسال إعلان التمويل بنجاح، معرف المستند: ${docId}`,
         [
           {
             text: 'حسناً',
             onPress: () =>
               navigation.navigate('MainDrawer', {
                 screen: 'MyAds',
-             
+                params: { newAd: true },
               }),
           },
         ]

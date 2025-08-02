@@ -4,6 +4,6 @@ import favoritesReducer from '../favoritesSlice';
 
 export const store = configureStore({
   reducer: {
-    favorites: favoritesReducer, // ✅ لازم يكون بنفس الاسم المستخدم في useSelector
+    favorites: favoritesReducer, 
   },
 });

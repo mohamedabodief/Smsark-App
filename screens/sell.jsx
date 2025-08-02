@@ -17,7 +17,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement';
 import Layout from '../src/Layout';
 
-const SellPage = () => {
+const SellPage = ({navigation}) => {
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [propertyTypeOpen, setPropertyTypeOpen] = useState(false);
@@ -181,6 +181,9 @@ const SellPage = () => {
           ) : (
             ads.map((ad, indx) => (
               <SearchCard
+              navigation={navigation}
+              source={'client'}
+               showHeart={false}
                 key={indx}
                 id={ad.id}
                 location={`${ad.governorate || ''} ${ad.city || ''}`.trim() || 'غير محدد'}

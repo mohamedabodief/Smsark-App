@@ -115,6 +115,12 @@ class FinancingRequest {
     return snapshot.docs.map((doc) => new FinancingRequest({ id: doc.id, ...doc.data() }));
   }
 
+  static async getRequestCountByAdId(advertisement_id) {
+    const q = query(collection(db, 'FinancingRequests'), where('advertisement_id', '==', advertisement_id));
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  }
+
   async returnToPending() {
     this.reviewStatus = 'pending';
     await this.update({ reviewStatus: 'pending' });
@@ -179,8 +185,6 @@ class FinancingRequest {
       callback(requests);
     });
   }
-
-
 }
 
 export default FinancingRequest;
