@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   TextInput,
@@ -9,13 +9,19 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import { AuthContext } from '../../context/AuthContext';
 import User from '../../FireBase/modelsWithOperations/User';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../FireBase/firebaseConfig';
 
 export default function OrganizationDetailsScreen({ route }) {
-  const { uid } = route.params;
+  const { user } = useContext(AuthContext);
   const navigation = useNavigation();
+  const uid = route.params?.uid || (user && user.uid) || 'guest';
+
+  console.log('OrganizationDetailsScreen: Rendering with uid:', uid);
 
   const [org_name, setOrgName] = useState('');
   const [phone, setPhoneNumber] = useState('');
@@ -53,8 +59,6 @@ export default function OrganizationDetailsScreen({ route }) {
     };
 
     setErrors(newErrors);
-
-    // Return true if there are no errors
     return Object.values(newErrors).every((error) => !error);
   };
 
@@ -72,8 +76,19 @@ export default function OrganizationDetailsScreen({ route }) {
       return;
     }
 
+    if (uid === 'guest') {
+      Alert.alert('خطأ', 'معرف المستخدم غير متاح. يرجى تسجيل الدخول مرة أخرى.');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+      return;
+    }
+
     try {
-      const user = new User({
+      const userData = new User({
         uid,
         type_of_user: 'organization',
         org_name,
@@ -86,16 +101,43 @@ export default function OrganizationDetailsScreen({ route }) {
         created_at: new Date().toISOString(),
       });
 
-      await user.saveToFirestore();
-      console.log("aakkk")
+      await userData.saveToFirestore();
+      console.log('OrganizationDetailsScreen: User data saved successfully');
+      await signOut(auth);
+      console.log('OrganizationDetailsScreen: User signed out successfully');
       Alert.alert('تم', 'تم حفظ البيانات بنجاح', [
         {
           text: 'موافق',
-          onPress: () => navigation.navigate('Login'),
+          onPress: () => {
+            console.log('OrganizationDetailsScreen: Navigating to Login');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              })
+            );
+          },
         },
       ]);
     } catch (err) {
+      console.error('OrganizationDetailsScreen: Error saving data:', err);
       Alert.alert('خطأ', err.message);
+    }
+  };
+
+  const handleBack = () => {
+    console.log('OrganizationDetailsScreen: Attempting to go back');
+    if (navigation.canGoBack()) {
+      console.log('OrganizationDetailsScreen: Going back to previous screen');
+      navigation.goBack();
+    } else {
+      console.log('OrganizationDetailsScreen: No previous screen, navigating to Login');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
     }
   };
 
@@ -175,7 +217,7 @@ export default function OrganizationDetailsScreen({ route }) {
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.goBack()}
+              onPress={handleBack}
             >
               <Text style={styles.backButtonText}>رجوع</Text>
             </TouchableOpacity>

@@ -1,54 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import ClientAdvertisement from '../FireBase/modelsWithOperations/ClientAdvertisement';
 import { auth } from '../FireBase/firebaseConfig';
-import { storage } from '../FireBase/firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Layout from '../src/Layout';
 
 const DisplayInfoAddClientAds = ({ route, navigation }) => {
-  console.log('DisplayInfoAddClientAds component mounted');
-  console.log('route.params:', route.params);
-  
   const { formData, images } = route.params || {};
   const [loading, setLoading] = useState(false);
+  const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Image';
 
   useEffect(() => {
-    console.log('DisplayInfoAddClientAds useEffect');
-    console.log('formData:', formData);
-    console.log('images:', images);
-    
-    if (!formData || !images) {
+    if (!formData || !images || images.length === 0) {
       console.error('Missing formData or images');
-      Alert.alert('خطأ', 'البيانات غير متوفرة');
-      navigation.goBack();
+      Alert.alert('خطأ', 'البيانات أو الصور غير متوفرة', [
+        { text: 'حسناً', onPress: () => navigation.goBack() },
+      ]);
     }
   }, [formData, images, navigation]);
-
-  // دالة لرفع الصور إلى Firebase Storage
-  const uploadImagesAndGetUrls = async (imageFiles) => {
-    const urls = [];
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      const response = await fetch(file.uri);
-      const blob = await response.blob();
-      const storageRef = ref(storage, `property_images/${auth.currentUser.uid}/${Date.now()}_${file.uri.split('/').pop()}`);
-      await uploadBytes(storageRef, blob);
-      const url = await getDownloadURL(storageRef);
-      urls.push(url);
-    }
-    return urls;
-  };
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const imageUrls = await uploadImagesAndGetUrls(images);
-      const advertisement = new ClientAdvertisement({
+      if (!auth.currentUser) throw new Error('المستخدم غير مسجل دخول');
+      if (!formData || !images || images.length === 0) throw new Error('البيانات أو الصور غير متوفرة');
+
+      // تحويل الصور إلى كائنات File
+      let imageFiles = [];
+      if (images.length > 0) {
+        imageFiles = await Promise.all(
+          images.map(async (image, index) => {
+            try {
+              const response = await fetch(image.uri);
+              if (!response.ok) throw new Error(`فشل تحميل الصورة: ${image.uri}`);
+              const blob = await response.blob();
+              return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
+            } catch (error) {
+              console.error('Error converting image:', error);
+              return null;
+            }
+          })
+        ).then((files) => files.filter((file) => file !== null));
+      }
+      if (imageFiles.length === 0) {
+        imageFiles = [DEFAULT_IMAGE_URL];
+      }
+
+      const advertisementData = {
         title: formData.title,
         type: formData.propertyType,
         price: parseFloat(formData.price),
-        area: parseFloat(formData.area),
+        space: parseFloat(formData.area),
         building_date: formData.buildingDate,
         address: formData.fullAddress,
         city: formData.city,
@@ -58,28 +69,36 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
         ad_type: formData.adType,
         status: formData.adStatus,
         description: formData.description,
-        images: imageUrls,
-        user_id: auth.currentUser.uid,
+        userId: auth.currentUser.uid,
+        location: `${formData.city}, ${formData.governorate}`,
+        created_at: new Date().toISOString(),
+        expiry_days: 30,
+        is_active: true,
+        reviewStatus: 'pending',
+      };
+
+      Object.keys(advertisementData).forEach((key) => {
+        if (advertisementData[key] === undefined || advertisementData[key] === null) {
+          throw new Error(`حقل ${key} غير مكتمل`);
+        }
       });
 
-      await advertisement.save();
-      
+      const advertisement = new ClientAdvertisement(advertisementData);
+      await advertisement.save(imageFiles);
       Alert.alert(
         'نجح الإرسال',
-        'تم إضافة الإعلان بنجاح في قاعدة البيانات',
-        [
-          {
-            text: 'حسناً',
-            onPress: () => navigation.navigate('AddAds')
-          }
-        ]
+        'تم رفع إعلانك وهو الآن قيد المراجعة',
+        [{ text: 'حسناً', onPress: () => navigation.navigate('home') }]
       );
     } catch (error) {
       console.error('Error submitting advertisement:', error);
       Alert.alert(
         'خطأ في الإرسال',
-        'حدث خطأ أثناء إضافة الإعلان. يرجى المحاولة مرة أخرى.',
-        [{ text: 'حسناً' }]
+        `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى.'}`,
+        [
+          { text: 'إعادة المحاولة', onPress: handleSubmit },
+          { text: 'إلغاء' },
+        ]
       );
     } finally {
       setLoading(false);
@@ -102,123 +121,123 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
     description: 'الوصف',
   };
 
+  if (!formData || !images || images.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>جاري تحميل البيانات...</Text>
+      </View>
+    );
+  }
+
   return (
     <Layout>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>مراجعة بيانات الإعلان</Text>
-          <Text style={styles.subtitle}>راجع البيانات قبل الإرسال النهائي</Text>
-        </View>
+          <View style={styles.header}>
+            <Text style={styles.title}>مراجعة بيانات الإعلان</Text>
+            <Text style={styles.subtitle}>راجع البيانات قبل الإرسال النهائي</Text>
+          </View>
 
-        {/* المعلومات الأساسية */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 المعلومات الأساسية</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.title}:</Text>
-            <Text style={styles.value}>{formData.title}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.propertyType}:</Text>
-            <Text style={styles.value}>{formData.propertyType}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.price}:</Text>
-            <Text style={styles.value}>{formData.price} ريال</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.area}:</Text>
-            <Text style={styles.value}>{formData.area} متر مربع</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.buildingDate}:</Text>
-            <Text style={styles.value}>{formData.buildingDate}</Text>
-          </View>
-        </View>
-
-        {/* الصور */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📸 الصور المرفقة</Text>
-          <View style={styles.imagePreviewContainer}>
-            {images.map((image, index) => (
-              <View key={index} style={styles.imagePreview}>
-                <Image source={{ uri: image.uri }} style={styles.image} />
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📋 المعلومات الأساسية</Text>
+            {Object.entries({
+              title: formData.title,
+              propertyType: formData.propertyType,
+              price: `${formData.price} جنيه`,
+              area: `${formData.area} متر مربع`,
+              buildingDate: formData.buildingDate,
+            }).map(([key, value]) => (
+              <View key={key} style={styles.row}>
+                <Text style={styles.label}>{translate[key]}</Text>
+                <Text style={styles.value}>{value}</Text>
               </View>
             ))}
           </View>
-          <Text style={styles.imageCount}>عدد الصور: {images.length}</Text>
-        </View>
 
-        {/* تفاصيل الموقع */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 تفاصيل الموقع</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.fullAddress}:</Text>
-            <Text style={styles.value}>{formData.fullAddress}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.city}:</Text>
-            <Text style={styles.value}>{formData.city}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.governorate}:</Text>
-            <Text style={styles.value}>{formData.governorate}</Text>
-          </View>
-        </View>
-
-        {/* معلومات التواصل */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📞 معلومات التواصل</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.phone}:</Text>
-            <Text style={styles.value}>{formData.phone}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.username}:</Text>
-            <Text style={styles.value}>{formData.username}</Text>
-          </View>
-        </View>
-
-        {/* تفاصيل الإعلان */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 تفاصيل الإعلان</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.adType}:</Text>
-            <Text style={styles.value}>{formData.adType}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>{translate.adStatus}:</Text>
-            <Text style={styles.value}>{formData.adStatus}</Text>
-          </View>
-          <View style={styles.descriptionRow}>
-            <Text style={styles.label}>{translate.description}:</Text>
-            <Text style={styles.descriptionValue}>{formData.description}</Text>
-          </View>
-        </View>
-
-        {/* الأزرار */}
-        <View style={styles.buttonContainer}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#4D00B1" />
-              <Text style={styles.loadingText}>جاري الإرسال...</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📸 الصور المرفقة</Text>
+            <View style={styles.imagePreviewContainer}>
+              {images.map((image, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: image.uri || DEFAULT_IMAGE_URL }}
+                  style={{ width: 100, height: 100, borderRadius: 12, marginRight: 8, marginBottom: 16 }}
+                  onError={(error) => {
+                    console.error('Image load error:', error.nativeEvent.error);
+                    Alert.alert('خطأ', 'لا يمكن تحميل الصورة المختارة.');
+                  }}
+                />
+              ))}
             </View>
-          ) : (
-            <>
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}> إرسال الإعلان</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                <Text style={styles.backButtonText}> عودة للتعديل</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  </Layout>
-);
-}
+            <Text style={styles.imageCount}>عدد الصور: {images.length}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📍 تفاصيل الموقع</Text>
+            {Object.entries({
+              fullAddress: formData.fullAddress,
+              city: formData.city,
+              governorate: formData.governorate,
+            }).map(([key, value]) => (
+              <View key={key} style={styles.row}>
+                <Text style={styles.label}>{translate[key]}</Text>
+                <Text style={styles.value}>{value}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📞 معلومات التواصل</Text>
+            {Object.entries({
+              phone: formData.phone,
+              username: formData.username,
+            }).map(([key, value]) => (
+              <View key={key} style={styles.row}>
+                <Text style={styles.label}>{translate[key]}</Text>
+                <Text style={styles.value}>{value}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📝 تفاصيل الإعلان</Text>
+            {Object.entries({
+              adType: formData.adType,
+              adStatus: formData.adStatus,
+            }).map(([key, value]) => (
+              <View key={key} style={styles.row}>
+                <Text style={styles.label}>{translate[key]}</Text>
+                <Text style={styles.value}>{value}</Text>
+              </View>
+            ))}
+            <View style={styles.descriptionRow}>
+              <Text style={styles.label}>{translate.description}</Text>
+              <Text style={styles.descriptionValue}>{formData.description}</Text>
+            </View>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4D00B1" />
+                <Text style={styles.loadingText}>جاري الإرسال...</Text>
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <Text style={styles.submitButtonText}>إرسال الإعلان</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                  <Text style={styles.backButtonText}>عودة للتعديل</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </Layout>
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -255,10 +274,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
@@ -316,17 +332,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginBottom: 16,
   },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
   imageCount: {
     color: '#28a745',
     fontSize: 14,
@@ -344,10 +349,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     shadowColor: '#4D00B1',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
@@ -386,4 +388,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DisplayInfoAddClientAds; 
+export default DisplayInfoAddClientAds;

@@ -1,16 +1,41 @@
-// components/DrawerContent.js
-import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Drawer, Text, IconButton, Badge } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { Drawer, IconButton, Alert } from 'react-native-paper';
+import { useContext } from 'react';
+import { AuthContext } from '../../../context/AuthContext';
+import { CommonActions } from '@react-navigation/native';
 
-export default function DrawerContent({ navigation, toggleMode, unreadCount, totalUnreadMessages, userType }) {
-//   const navigation = useNavigation();
+export default function DrawerContent({ navigation, toggleMode, userType }) {
+  const { logout, user } = useContext(AuthContext);
+  const userId = user && user.uid ? user.uid : 'guest';
 
-  const handleNavigate = (route) => {
-    navigation.navigate(route);
-    navigation.closeDrawer();
-    // onClose();
+  console.log('DrawerContent: Rendering with userId:', userId);
+
+  const handleLogout = async () => {
+    try {
+      console.log('DrawerContent: Attempting to sign out');
+      await logout();
+      console.log('DrawerContent: Sign out completed, resetting navigation to Login');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+    } catch (error) {
+      console.error('DrawerContent: Logout failed:', error);
+      Alert.alert('خطأ', 'فشل تسجيل الخروج. حاولي مرة أخرى.');
+    }
+  };
+
+  const handleNavigate = (route, params) => {
+    try {
+      console.log('DrawerContent: Navigating to', route, params || '');
+      navigation.navigate(route, params);
+      navigation.closeDrawer();
+    } catch (error) {
+      console.error('DrawerContent: Navigation failed:', error);
+      Alert.alert('خطأ', `فشل التنقل إلى ${route}.`);
+    }
   };
 
   return (
@@ -18,21 +43,45 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
       <IconButton icon="close" onPress={() => navigation.closeDrawer()} />
 
       <Drawer.Section title="القائمة">
-
-        <Drawer.Item label="الصفحة الرئيسية" onPress={() => handleNavigate('Home')} />
-        <Drawer.Item label="إضافة عقار" onPress={() => handleNavigate('AddAds')} />
-          <Drawer.Item label="عن الموقع" onPress={() => handleNavigate('About')} />
-        <Drawer.Item label="الصفحة الشخصية" onPress={() => handleNavigate('profile')} />
-        <Drawer.Item label="تواصل معنا" onPress={() => handleNavigate('Contact')} />
-
+        <Drawer.Item
+          label="الصفحة الرئيسية"
+          onPress={() => handleNavigate('MainStack', { screen: 'Home' })}
+        />
+        <Drawer.Item
+          label="إضافة عقار"
+          onPress={() => handleNavigate('AddClientAds')}
+        />
+        <Drawer.Item
+          label="عن الموقع"
+          onPress={() => handleNavigate('About')}
+        />
+        <Drawer.Item
+          label="الصفحة الشخصية"
+          onPress={() => handleNavigate('profile')}
+        />
+        <Drawer.Item
+          label="إعلاناتي"
+          onPress={() => handleNavigate('MyAds')}
+        />
         <Drawer.Item
           label="المفضلة"
           icon="heart"
           onPress={() => handleNavigate('Favorite')}
         />
-
-        <Drawer.Item label="تبديل الثيم" icon="theme-light-dark" onPress={toggleMode} />
-
+        <Drawer.Item
+          label="طلباتي"
+          onPress={() => handleNavigate('MyOrders')}
+        />
+        <Drawer.Item
+          label="تبديل الثيم"
+          icon="theme-light-dark"
+          onPress={toggleMode}
+        />
+        <Drawer.Item
+          label="تسجيل الخروج"
+          icon="logout"
+          onPress={handleLogout}
+        />
       </Drawer.Section>
     </View>
   );

@@ -20,13 +20,13 @@ const cards = [
     icon: 'attach-money',
     title: 'تطوير',
     desc: 'احصل على حلول تطويريه مخصصة لك بسهولة.',
-    path: 'Developer',
+    path: 'developer',
   },
   {
     icon: 'attach-money',
     title: 'تمويل',
     desc: 'احصل على حلول تمويلية مخصصة لك بسهولة.',
-    path: 'Financing',
+    path: 'financing',
   },
 ];
 

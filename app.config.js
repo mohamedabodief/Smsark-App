@@ -29,15 +29,29 @@ export default {
       favicon: './assets/favicon.png',
     },
     extra: {
-      FIREBASE_API_KEY: process.env.API_KEY,
-      AUTH_DOMAIN: process.env.AUTH_DOMAIN,
-      STORAGE_BUCKET: process.env.STORAGE_BUCKET,
-      MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
-      APP_ID: process.env.APP_ID,
-      MEASUREMENT_ID: process.env.MEASUREMENT_ID,
       eas: {
-        projectId: process.env.PROJECT_ID,
+        projectId: '08550ff4-ff87-4a66-9950-304176c949d2', // معرف المشروع من EAS
       },
+      FIREBASE_API_KEY: 'AIzaSyBZDFrAARgCTXF_L5KFqD_EOQm_5nF_uTg',
+      AUTH_DOMAIN: 'smsark-app.firebaseapp.com',
+      FIREBASE_PROJECT_ID: 'smsark-alaqary',
+      STORAGE_BUCKET: 'smsark-alaqary.firebasestorage.app',
+      MESSAGING_SENDER_ID: '165621685338',
+      APP_ID: '1:165621685338:android:1cec5888597039cce9cc63',
+      MEASUREMENT_ID: 'G-0ZMCMWXZ1X',
     },
+    cli: {
+      appVersionSource: 'local', // لتجنب التحذير
+    },
+    plugins: [
+      'expo-secure-store',
+      [
+        'expo-image-picker',
+        {
+          photosPermission: 'نحتاج إذن للوصول إلى الصور لرفع صور العقار.',
+          cameraPermission: 'نحتاج إذن لاستخدام الكاميرا لالتقاط صورة للعقار.',
+        },
+      ],
+    ],
   },
 };

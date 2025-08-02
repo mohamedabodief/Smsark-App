@@ -46,7 +46,6 @@ export default function Advertise() {
     // ✅ إلغاء كل القيود والسماح بالدخول
     navigation.navigate(item.route);
 
-    // ❌ القيود الأصلية (تم تعطيلها):
     /*
     if (!userType) {
       Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً');
