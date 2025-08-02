@@ -204,6 +204,7 @@ const SearchPage = ({ navigation }) => {
           ) : (
             ads.map((ad, index) => (
               <SearchCard
+              showHeart={false}
                 key={index}
                 id={ad.id}
                 location={

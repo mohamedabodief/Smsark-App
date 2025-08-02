@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,7 +8,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { store } from './src/redux/store';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
-import { ActivityIndicator } from 'react-native-paper'; // تصحيح استيراد ActivityIndicator
+import { ActivityIndicator } from 'react-native-paper';
 import { CommonActions } from '@react-navigation/native';
 import { loadFavoritesAsync } from './src/redux/favoritesSlice';
 import { useFonts } from 'expo-font';
@@ -47,8 +47,7 @@ import MyOrders from './screens/MyOrdeers';
 import AddFinancingAdFormNative from './screens/FincingRequstAndDiaplay';
 import DisplayInfoAddFinancingAds from './screens/displayInfoFincingAds';
 import RequestsForAd from './screens/RequestsForAd';
-import { auth } from './FireBase/firebaseConfig';
-import ContactUsScreen from './screens/ContactWithUs'; // استيراد واحد فقط
+import ContactUsScreen from './screens/ContactWithUs'; 
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -158,15 +157,6 @@ function AppDrawer({ toggleMode }) {
 
   console.log('AppDrawer: Rendering with userId:', userId);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        dispatch(loadFavoritesAsync());
-      }
-    });
-    return () => unsubscribe();
-  }, [dispatch]);
-
   return (
     <Drawer.Navigator
       initialRouteName="MainStack"
@@ -174,7 +164,7 @@ function AppDrawer({ toggleMode }) {
       screenOptions={{
         headerShown: false,
         drawerStyle: { backgroundColor: '#f6f6f6', width: 280 },
-        drawerActiveTintColor: '#f4511e',
+        drawerActiveTintColor: '#4D00B1',
         drawerInactiveTintColor: '#333',
       }}
     >
@@ -257,17 +247,20 @@ function AppDrawer({ toggleMode }) {
 function AppContent({ navigation, toggleMode }) {
   const { user, loading } = useContext(AuthContext);
   const [initialRoute, setInitialRoute] = useState(null);
+  const hasNavigated = useRef(false); 
 
   useEffect(() => {
     console.log('AppContent: useEffect - loading:', loading, 'user:', user ? user.uid : 'none');
-    if (loading) {
-      console.log('AppContent: Still loading, waiting for auth state');
+    if (loading || hasNavigated.current) {
+      console.log('AppContent: Skipping navigation - loading:', loading, 'hasNavigated:', hasNavigated.current);
       return;
     }
+
     if (!user || !user.uid) {
       console.log('AppContent: No user or no uid, setting initialRoute to Login');
       setInitialRoute('Login');
       if (navigation) {
+        hasNavigated.current = true;
         console.log('AppContent: Resetting navigation to Login');
         navigation.dispatch(
           CommonActions.reset({
@@ -281,6 +274,7 @@ function AppContent({ navigation, toggleMode }) {
       console.log('AppContent: User exists, setting initialRoute to MainApp');
       setInitialRoute('MainApp');
       if (navigation) {
+        hasNavigated.current = true;
         console.log('AppContent: Resetting navigation to MainApp');
         navigation.dispatch(
           CommonActions.reset({
@@ -302,7 +296,7 @@ function AppContent({ navigation, toggleMode }) {
     console.log('AppContent: Showing loading indicator');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#f4511e" />
+        <ActivityIndicator size="large" color="#4D00B1" />
       </View>
     );
   }
@@ -331,7 +325,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(scheme === 'dark');
 
   const [fontsLoaded] = useFonts({
-    'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'), 
+    'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
   });
 

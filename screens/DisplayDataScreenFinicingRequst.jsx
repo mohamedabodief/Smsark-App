@@ -22,78 +22,76 @@ const DisplayDataScreenFinicingRequst = ({ route, navigation }) => {
     financing_amount: 'مبلغ التمويل',
   };
 
-  const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      // التأكد من وجود مستخدم مسجل دخول
-      if (!auth.currentUser) {
-        throw new Error('لا يوجد مستخدم مسجل دخول');
-      }
-
-      // التأكد من وجود advertisementId
-      if (!advertisementId) {
-        throw new Error('معرّف الإعلان غير متوفر');
-      }
-
-      // فحص الإعلان في Firestore
-      const adRef = doc(db, 'FinancingAdvertisements', advertisementId);
-      const adSnap = await getDoc(adRef);
-      if (!adSnap.exists()) {
-        throw new Error(`إعلان التمويل غير موجود: ${advertisementId}`);
-      }
-
-      const financingRequest = new FinancingRequest({
-        user_id: userId || auth.currentUser.uid,
-        advertisement_id: advertisementId,
-        monthly_income: parseFloat(formData.income) || 0,
-        job_title: formData.jobTitle || '',
-        employer: formData.employer || '',
-        age: parseInt(formData.age) || 0,
-        marital_status: formData.maritalStatus || '',
-        dependents: parseInt(formData.dependents) || 0,
-        financing_amount: parseFloat(formData.financing_amount) || 100000,
-        repayment_years: parseInt(formData.repaymentPeriod) || 5,
-        phone_number: formData.phone_number || '',
-        status: 'pending',
-        reviewStatus: 'pending'
-      });
-
-      console.log('Saving financing request:', {
-        user_id: financingRequest.user_id,
-        advertisement_id: financingRequest.advertisement_id,
-        monthly_income: financingRequest.monthly_income,
-        financing_amount: financingRequest.financing_amount,
-        advertisement_title: advertisementTitle || 'غير متوفر',
-      });
-
-      const requestId = await financingRequest.save();
-      console.log('Financing request saved with ID:', requestId);
-
-      Alert.alert(
-        'نجح الحفظ',
-        'تم حفظ طلب التمويل بنجاح',
-        [
-          {
-            text: 'حسناً',
-            onPress: () => navigation.navigate('FinancingRequest', {
-              advertisementId,
-              advertisementTitle,
-              userId: auth.currentUser.uid,
-            })
-          }
-        ]
-      );
-    } catch (error) {
-      console.error('Error saving financing request:', error.message);
-      Alert.alert(
-        'خطأ في الحفظ',
-        `حدث خطأ أثناء حفظ طلب التمويل: ${error.message}`,
-        [{ text: 'حسناً' }]
-      );
-    } finally {
-      setLoading(false);
+const handleConfirm = async () => {
+  setLoading(true);
+  try {
+    // التأكد من وجود مستخدم مسجل دخول
+    if (!auth.currentUser) {
+      throw new Error('لا يوجد مستخدم مسجل دخول');
     }
-  };
+
+    // التأكد من وجود advertisementId
+    if (!advertisementId) {
+      throw new Error('معرّف الإعلان غير متوفر');
+    }
+
+    // فحص الإعلان في Firestore
+    const adRef = doc(db, 'FinancingAdvertisements', advertisementId);
+    const adSnap = await getDoc(adRef);
+    if (!adSnap.exists()) {
+      throw new Error(`إعلان التمويل غير موجود: ${advertisementId}`);
+    }
+
+    const financingRequest = new FinancingRequest({
+      user_id: userId || auth.currentUser.uid,
+      advertisement_id: advertisementId,
+      advertisement_title: advertisementTitle || 'غير متوفر',
+      monthly_income: parseFloat(formData.income) || 0,
+      job_title: formData.jobTitle || '',
+      employer: formData.employer || '',
+      age: parseInt(formData.age) || 0,
+      marital_status: formData.maritalStatus || '',
+      dependents: parseInt(formData.dependents) || 0,
+      financing_amount: parseFloat(formData.financing_amount) || 100000,
+      repayment_years: parseInt(formData.repaymentPeriod) || 5,
+      phone_number: formData.phone_number || '',
+      status: 'pending',
+      reviewStatus: 'pending',
+      submitted_at: new Date(), // إضافة تاريخ التقديم
+    });
+
+    console.log('Saving financing request:', {
+      user_id: financingRequest.user_id,
+      advertisement_id: financingRequest.advertisement_id,
+      advertisement_title: financingRequest.advertisement_title, // تسجيل العنوان
+      monthly_income: financingRequest.monthly_income,
+      financing_amount: financingRequest.financing_amount,
+    });
+
+    const requestId = await financingRequest.save();
+    console.log('Financing request saved with ID:', requestId);
+
+    Alert.alert(
+      'نجح الحفظ',
+      'تم حفظ طلب التمويل بنجاح',
+      [
+        {
+          text: 'حسناً',
+          onPress: () => navigation.navigate('MyOrders', { userId: auth.currentUser.uid }) // التوجيه إلى MyOrders
+        }
+      ]
+    );
+  } catch (error) {
+    console.error('Error saving financing request:', error.message);
+    Alert.alert(
+      'خطأ في الحفظ',
+      `حدث خطأ أثناء حفظ طلب التمويل: ${error.message}`,
+      [{ text: 'حسناً' }]
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Layout>

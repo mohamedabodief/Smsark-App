@@ -14,6 +14,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import FinancingAdvertisement from '../../../FireBase/modelsWithOperations/FinancingAdvertisement';
 import { auth } from '../../../FireBase/firebaseConfig';
+import User from '../../../FireBase/modelsWithOperations/User';
 
 const PACKAGE_INFO = {
   1: { name: 'باقة الأساس', price: 100, duration: 7 },
@@ -29,9 +30,30 @@ export default function DetailsForFinancingAds() {
   const [mainImage, setMainImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [showFull, setShowFull] = useState(false);
+  const [userType, setUserType] = useState(null); 
 
   useEffect(() => {
-    const fetchAdDetails = async () => {
+    const fetchData = async () => {
+      if (auth.currentUser) {
+        try {
+          const userData = await User.getByUid(auth.currentUser.uid);
+          if (userData && userData.type_of_user) {
+            setUserType(userData.type_of_user);
+            console.log('User type:', userData.type_of_user);
+          } else {
+            setUserType(null);
+            console.log('No user type found');
+          }
+        } catch (error) {
+          console.error('Error fetching user type:', error);
+          setUserType(null);
+        }
+      } else {
+        console.log('No user logged in');
+        setUserType(null);
+      }
+
+      // استرجاع تفاصيل الإعلان
       if (!id || typeof id !== 'string') {
         Alert.alert("خطأ", "معرّف الإعلان غير صالح");
         navigation.navigate('Home');
@@ -59,7 +81,7 @@ export default function DetailsForFinancingAds() {
       }
     };
 
-    fetchAdDetails();
+    fetchData();
   }, [id]);
 
   const handleShare = () => {
@@ -76,12 +98,12 @@ export default function DetailsForFinancingAds() {
   };
 
   const submitRequest = () => {
-    if (!auth.currentUser && userId !== 'guest') {
+    if (!auth.currentUser) {
       Alert.alert('خطأ', 'يجب تسجيل الدخول لتقديم طلب.');
       navigation.navigate('Login');
       return;
     }
-    const userId = auth.currentUser ? auth.currentUser.uid : 'guest';
+    const userId = auth.currentUser.uid;
     navigation.navigate('FinancingRequest', {
       advertisementId: id,
       userId,
@@ -113,9 +135,11 @@ export default function DetailsForFinancingAds() {
       <View style={styles.detailsContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{clientAds.title}</Text>
-          <TouchableOpacity onPress={submitRequest} style={styles.submitRequestBtn}>
-            <Text style={styles.btnText}>قدم طلب الآن</Text>
-          </TouchableOpacity>
+          {userType === 'client' && (
+            <TouchableOpacity onPress={submitRequest} style={styles.submitRequestBtn}>
+              <Text style={styles.btnText}>قدم طلب الآن</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <Text numberOfLines={showFull ? undefined : 4} style={styles.description}>
           {clientAds.description || 'لا يوجد وصف'}

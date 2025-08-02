@@ -1,22 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
 import { Avatar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../../../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../FireBase/firebaseConfig';
 
 export default function Advertise() {
   const [userType, setUserType] = useState(null);
+  const [organizationType, setOrganizationType] = useState(null);
   const navigation = useNavigation();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchUserType = async () => {
-      const user = { id: 'test-user', type_of_user: 'developer' }; // client | developer | financer | admin | organization
-      if (user) {
-        setUserType(user.type_of_user);
+      if (!user || !user.uid) {
+        console.log('Advertise: No user logged in');
+        setUserType(null);
+        return;
+      }
+
+      try {
+        console.log('Advertise: Fetching user data for UID:', user.uid);
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log('Advertise: User data fetched:', userData);
+          setUserType(userData.type_of_user);
+          if (userData.type_of_user === 'organization') {
+            setOrganizationType(userData.type_of_organization || null);
+            console.log('Advertise: Organization type:', userData.type_of_organization);
+          }
+        } else {
+          console.log('Advertise: User document does not exist');
+          setUserType(null);
+        }
+      } catch (error) {
+        console.error('Advertise: Error fetching user data:', error);
+        setUserType(null);
       }
     };
 
     fetchUserType();
-  }, []);
+  }, [user]);
 
   const options = [
     {
@@ -43,31 +70,37 @@ export default function Advertise() {
   ];
 
   const handleNavigate = (item) => {
-    // ✅ إلغاء كل القيود والسماح بالدخول
-    navigation.navigate(item.route);
+    console.log('Advertise: handleNavigate called with item:', item, 'userType:', userType, 'organizationType:', organizationType);
 
-    /*
-    if (!userType) {
-      Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً');
+    if (!user || !userType) {
+      console.log('Advertise: No user or userType, redirecting to Login');
+      Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً', [
+        { text: 'موافق', onPress: () => navigation.navigate('Login') },
+      ]);
       return;
     }
 
     if (userType === 'admin') {
+      console.log('Advertise: Admin user, navigating to', item.route);
       navigation.navigate(item.route);
     } else if (userType === 'organization') {
-      if (item.type === 'developer') {
+      if (['ممول عقاري', 'ممول عقارى'].includes(organizationType) && item.type === 'financer') {
+        console.log('Advertise: Organization (ممول عقاري/عقارى) user, navigating to AddFinancingAds');
+        navigation.navigate('AddFinancingAds');
+      } else if (['مطور عقاري', 'مطور عقارى'].includes(organizationType) && item.type === 'developer') {
+        console.log('Advertise: Organization (مطور عقاري/عقارى) user, navigating to AddDeveloperAds');
         navigation.navigate('AddDeveloperAds');
-      } else if (item.type === 'financer') {
-        navigation.navigate('AddFinancingAd');
       } else {
-        Alert.alert('غير مسموح', 'غير مسموح للمُنظمات بإضافة إعلانات العملاء');
+        console.log(`Advertise: Access denied for organization type ${organizationType} to ${item.route}`);
+        Alert.alert('غير مصرح', 'غير مصرح لك بالدخول لهذا القسم');
       }
     } else if (userType === item.type) {
+      console.log(`Advertise: ${userType} user, navigating to`, item.route);
       navigation.navigate(item.route);
     } else {
+      console.log(`Advertise: Access denied for userType ${userType} to ${item.route}`);
       Alert.alert('غير مصرح', 'غير مصرح لك بالدخول لهذا القسم');
     }
-    */
   };
 
   return (

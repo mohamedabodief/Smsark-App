@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import FinancingRequest from '../FireBase/modelsWithOperations/FinancingRequest';
 import Layout from '../src/Layout';
@@ -99,19 +99,56 @@ const MyOrders = ({ navigation }) => {
     }
   };
 
+  const handleDelete = async (requestId) => {
+    Alert.alert(
+      'تأكيد الحذف',
+      'هل أنت متأكد أنك تريد حذف هذا الطلب؟',
+      [
+        {
+          text: 'إلغاء',
+          style: 'cancel',
+        },
+        {
+          text: 'حذف',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const request = await FinancingRequest.getById(requestId);
+              if (!request) {
+                throw new Error('الطلب غير موجود');
+              }
+              await request.delete();
+              Alert.alert('نجاح', 'تم حذف الطلب بنجاح');
+              // تحديث القائمة بعد الحذف
+              setRequests((prevRequests) => prevRequests.filter((req) => req.id !== requestId));
+            } catch (error) {
+              console.error('Error deleting request:', error.message);
+              Alert.alert('خطأ', `حدث خطأ أثناء حذف الطلب: ${error.message}`);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderRequest = ({ item }) => {
     console.log('Rendering request:', item.id);
     return (
       <TouchableOpacity
+        key={item.id}
         style={styles.requestCard}
         onPress={() => {
           console.log('Request clicked:', item.id);
         }}
       >
         <View style={styles.requestContent}>
-          <Text style={styles.requestTitle}>طلب رقم: {item.id}</Text>
+          <View style={styles.headerContainer}>
+            <Text style={styles.requestTitle}>طلب رقم: {item.id}</Text>
+          </View>
           <View style={styles.requestDetailContainer}>
-            <Text style={styles.requestDetailText}>{translate.advertisement_title}: {item.advertisement_title || 'غير محدد'}</Text>
+            <Text style={styles.requestDetailText}>
+              {translate.advertisement_title}: {item.advertisement_title || 'غير محدد'}
+            </Text>
             <MaterialIcons name="request-quote" size={14} color="#4D00B1" />
           </View>
           {Object.entries(item).map(([key, value]) => {
@@ -142,7 +179,14 @@ const MyOrders = ({ navigation }) => {
             </View>
           )}
         </View>
+             <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id)}
+            >
+             <Text style={{color:'white'}}>حذف</Text>
+            </TouchableOpacity>
       </TouchableOpacity>
+      
     );
   };
 
@@ -161,7 +205,7 @@ const MyOrders = ({ navigation }) => {
     return (
       <Layout>
         <View style={styles.centeredContainer}>
-          <MaterialIcons name="error-outline" size={40} color="#FF4D4D" />
+          <MaterialIcons name="error-outline" size={40} color="#4D00B1" />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       </Layout>
@@ -173,7 +217,7 @@ const MyOrders = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.headerTitle}>طلباتي</Text>
         {requests.length === 0 ? (
-          <View style={styles.emptyContainer} key={requests.userId}>
+          <View style={styles.emptyContainer}>
             <MaterialIcons name="info-outline" size={40} color="#999" />
             <Text style={styles.emptyText}>لا توجد طلبات تمويل مسجلة</Text>
           </View>
@@ -222,18 +266,32 @@ const styles = StyleSheet.create({
   requestContent: {
     padding: 15,
   },
+  headerContainer: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   requestTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#4D00B1',
-    marginBottom: 10,
-    textAlign: 'center',
+    textAlign: 'right',
+  },
+  deleteButton: {
+    paddingVertical:6,
+    paddingHorizontal:20,
+    textAlign:'center',
+    margin:'auto',
+    backgroundColor:'#4D00B1',
+  borderRadius:15,
+  marginBottom:10
   },
   requestDetailContainer: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 5,
-    gap:10
+    gap: 10,
   },
   requestDetailText: {
     fontSize: 14,
@@ -260,7 +318,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#FF4D4D',
+    color: '#4D00B1',
     textAlign: 'center',
     marginTop: 8,
     writingDirection: 'rtl',

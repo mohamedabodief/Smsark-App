@@ -185,8 +185,6 @@ const MyAdsScreen = ({ navigation, route }) => {
               const adRef = doc(db, collectionName, id);
               await deleteDoc(adRef);
               console.log(`Deleted ad ${id} from ${collectionName}`);
-
-              // تحديث حالة الإعلانات بدون إعادة تحميل
               setAdvertisements(prev => prev.filter(ad => ad.id !== id));
               Alert.alert('نجاح', 'تم حذف الإعلان بنجاح');
             } catch (error) {

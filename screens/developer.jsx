@@ -157,6 +157,7 @@ const DeveloperPage = ({ navigation }) => {
             ) : (
               ads.map((ad, index) => (
                 <SearchCard
+                 showHeart={false}
                   key={index}
                   id={ad.id}
                   location={`${ad.location?.governorate || ''} ${ad.location?.city || ''}`.trim() || 'غير محدد'}

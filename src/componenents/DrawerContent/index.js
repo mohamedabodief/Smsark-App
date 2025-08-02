@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Drawer, IconButton, useTheme, Text, Alert } from 'react-native-paper';
-import { CommonActions } from '@react-navigation/native';
 import { AuthContext } from '../../../context/AuthContext';
 
 export default function DrawerContent({ navigation, toggleMode, unreadCount, totalUnreadMessages, userType }) {
@@ -15,13 +14,7 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
     try {
       console.log('DrawerContent: Attempting to sign out');
       await logout();
-      console.log('DrawerContent: Sign out completed, resetting navigation to Login');
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        })
-      );
+      console.log('DrawerContent: Logout initiated');
     } catch (error) {
       console.error('DrawerContent: Logout failed:', error);
       Alert.alert('خطأ', 'فشل تسجيل الخروج. حاولي مرة أخرى.');
@@ -74,14 +67,12 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
             onPress={() => handleNavigate('MyAds')}
             {...drawerItemProps}
           />
-       
           <Drawer.Item
             label="طلباتي"
             onPress={() => handleNavigate('MyOrders')}
             {...drawerItemProps}
           />
-
-             <Drawer.Item
+          <Drawer.Item
             label="المفضلة"
             icon="heart"
             onPress={() => handleNavigate('Favorite')}
@@ -94,11 +85,11 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
             {...drawerItemProps}
           />
           <Drawer.Item
-  label="تواصل معنا"
-   icon="headset"
-  onPress={() => handleNavigate('ContactUs')}
-  {...drawerItemProps}
-/>
+            label="تواصل معنا"
+            icon="headset"
+            onPress={() => handleNavigate('ContactUs')}
+            {...drawerItemProps}
+          />
           <Drawer.Item
             label="تسجيل الخروج"
             icon="logout"

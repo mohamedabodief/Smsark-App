@@ -84,7 +84,7 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
       return;
     }
     try {
-      navigation.navigate(targetScreen, { id }); // التنقل مباشرة إلى الشاشة المستهدفة
+      navigation.navigate(targetScreen, { id }); 
       console.log(`Navigated to ${targetScreen} with id: ${id}`);
     } catch (error) {
       console.error('Navigation error:', error.message || error);
@@ -172,9 +172,8 @@ const styles = StyleSheet.create({
     direction: 'rtl',
   },
   imageWrapper: {
-    position: 'relative',
     width: 120,
-    height: 130,
+    height: 140,
     overflow: 'hidden',
   },
   image: {
