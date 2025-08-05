@@ -119,7 +119,6 @@ const MyOrders = ({ navigation }) => {
               }
               await request.delete();
               Alert.alert('نجاح', 'تم حذف الطلب بنجاح');
-              // تحديث القائمة بعد الحذف
               setRequests((prevRequests) => prevRequests.filter((req) => req.id !== requestId));
             } catch (error) {
               console.error('Error deleting request:', error.message);
@@ -146,10 +145,7 @@ const MyOrders = ({ navigation }) => {
             <Text style={styles.requestTitle}>طلب رقم: {item.id}</Text>
           </View>
           <View style={styles.requestDetailContainer}>
-            <Text style={styles.requestDetailText}>
-              {translate.advertisement_title}: {item.advertisement_title || 'غير محدد'}
-            </Text>
-            <MaterialIcons name="request-quote" size={14} color="#4D00B1" />
+
           </View>
           {Object.entries(item).map(([key, value]) => {
             if (
@@ -276,7 +272,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#4D00B1',
-    textAlign: 'right',
+    textAlign: 'center',
+    margin:'auto'
   },
   deleteButton: {
     paddingVertical:6,

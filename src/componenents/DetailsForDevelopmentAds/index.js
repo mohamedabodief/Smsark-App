@@ -177,18 +177,18 @@ export default function DetailsForDevelopment() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 10 },
+  container: { flex: 1, backgroundColor: '#fff', padding: 10, direction:'rtl'},
   mainImage: { width: '100%', height: 250, borderRadius: 12 },
   previewRow: { flexDirection: 'row', marginVertical: 10 },
   previewImage: { width: 80, height: 80, marginRight: 8, borderRadius: 8 },
   detailsContainer: { padding: 10 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#6E00FE', marginBottom: 10 },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#6E00FE', marginBottom: 10 , direction:'rtl'},
   description: { fontSize: 16, lineHeight: 22, color: '#333' },
   moreBtn: { color: '#6E00FE', marginTop: 6, fontWeight: 'bold' },
-  infoRow: { flexDirection: 'row', marginVertical: 4 },
+  infoRow: { flexDirection: 'row', marginVertical: 4 ,gap:10},
   label: { fontWeight: 'bold', marginRight: 8 },
   value: { color: '#333' },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
+  actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20,gap:10,marginBottom:40, direction:'rtl' },
   callBtn: {
     backgroundColor: '#DF3631',
     padding: 12,
