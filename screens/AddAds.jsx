@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   picker: {
-    height: Platform.OS === 'ios' ? 150 : 50,
+    height: Platform.OS === 'ios' ? 150 : 60,
     width: '100%',
   },
   row: {

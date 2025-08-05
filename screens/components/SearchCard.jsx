@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: 120,
-    height: 140,
+    height: 148,
     overflow: 'hidden',
   },
   image: {

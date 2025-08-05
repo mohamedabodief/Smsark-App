@@ -48,6 +48,7 @@ import AddFinancingAdFormNative from './screens/FincingRequstAndDiaplay';
 import DisplayInfoAddFinancingAds from './screens/displayInfoFincingAds';
 import RequestsForAd from './screens/RequestsForAd';
 import ContactUsScreen from './screens/ContactWithUs'; 
+import FinancingRequestScreen from './screens/finicingRequst';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -103,6 +104,11 @@ function FormStackNavigator() {
       <Stack.Screen
         name="FinancingRequest"
         component={FinancingRequest}
+        initialParams={{ userId }}
+      />
+        <Stack.Screen
+        name="FinancingRequestScreen"
+        component={FinancingRequestScreen}
         initialParams={{ userId }}
       />
       <Stack.Screen

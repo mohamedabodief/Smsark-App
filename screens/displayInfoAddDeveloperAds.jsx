@@ -7,49 +7,45 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
-import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAdvertisement';
+import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 import { auth, db } from '../FireBase/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
-const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
+const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const { formData, images } = route.params || {};
   const userId = auth.currentUser?.uid;
-  const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Financing+Image';
+  const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Developer+Image';
 
   useEffect(() => {
-    console.log('FinancingAdvertisement:', FinancingAdvertisement);
+    console.log('DisplayInfoAddDeveloperAds: Rendering with userId:', userId);
     console.log('Form Data:', formData);
     console.log('Images:', images);
-    console.log('UserId:', userId);
 
     if (!formData) {
-      Alert.alert('خطأ', 'لم يتم العثور على بيانات الإعلان', [
-        { text: 'حسناً', onPress: () => navigation.goBack() },
-      ]);
+      console.log('No formData, navigating back');
+      navigation.goBack();
       return;
     }
 
     if (!userId) {
-      Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً', [
-        { text: 'حسناً', onPress: () => navigation.navigate('Login') },
-      ]);
+      console.log('No userId, navigating to Login');
+      navigation.navigate('Login');
       return;
     }
 
-    if (!formData.title && !formData.description && !images?.length) {
-      Alert.alert('خطأ', 'البيانات أو الصورة غير متوفرة', [
-        { text: 'حسناً', onPress: () => navigation.goBack() },
-      ]);
+    if (!formData.developer_name && !formData.description && !images?.length) {
+      console.log('No valid data or images, navigating back');
+      navigation.goBack();
     }
   }, [formData, images, userId, navigation]);
 
   const handleSubmit = async () => {
     if (!userId) {
-      Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً');
+      console.log('No userId, navigating to Login');
       navigation.navigate('Login');
       return;
     }
@@ -65,7 +61,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         },
         { merge: true }
       );
-      console.log('User type updated to organization for UID:', userId);
+
       let imageFiles = [];
       if (images && images.length > 0) {
         imageFiles = await Promise.all(
@@ -85,25 +81,35 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
           })
         ).then(files => files.filter(file => file !== null));
       }
+
       if (imageFiles.length === 0) {
         console.log('No valid images, using default image');
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
-      console.log('Image Files (sent to Firestore):', imageFiles);
+      console.log('Image Files before save:', imageFiles);
 
+      // توافق الحقول مع RealEstateDeveloperAdvertisement
       const adData = {
         userId: userId,
-        title: formData.title || '',
+        developer_name: formData.developer_name || '',
         description: formData.description || '',
-        org_name: formData.org_name || '',
+        project_types: formData.project_types || '',
         phone: formData.phone || '',
-        start_limit: formData.start_limit ? parseFloat(formData.start_limit) : null,
-        end_limit: formData.end_limit ? parseFloat(formData.end_limit) : null,
-        interest_rate_upto_5: formData.interest_rate_upto_5 ? parseFloat(formData.interest_rate_upto_5) : null,
-        interest_rate_upto_10: formData.interest_rate_upto_10 ? parseFloat(formData.interest_rate_upto_10) : null,
-        interest_rate_above_10: formData.interest_rate_above_10 ? parseFloat(formData.interest_rate_above_10) : null,
-        images: [], 
+        location: formData.location || '',
+        price_start_from: formData.price_start_from ? parseFloat(formData.price_start_from) : 0,
+        price_end_to: formData.price_end_to ? parseFloat(formData.price_end_to) : 0,
+        type_of_user: formData.type_of_user || 'organization',
+        rooms: formData.rooms ? parseInt(formData.rooms) : null,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+        floor: formData.floor ? parseInt(formData.floor) : null,
+        furnished: formData.furnished || false,
+        status: formData.status || 'تحت العرض',
+        paymentMethod: formData.paymentMethod || null,
+        negotiable: formData.negotiable || false,
+        deliveryTerms: formData.deliveryTerms || null,
+        features: formData.features || [],
+        area: formData.area ? parseFloat(formData.area) : null,
         reviewStatus: 'pending',
         ads: false,
         adExpiryTime: null,
@@ -111,47 +117,47 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         reviewed_by: null,
         review_note: null,
         adPackage: null,
+        images: imageFiles.map(file => typeof file === 'string' ? file : file.name || DEFAULT_IMAGE_URL),
       };
 
       console.log('Ad Data prepared:', adData);
-      console.log('Creating FinancingAdvertisement instance');
-      const financingAd = new FinancingAdvertisement(adData);
-      console.log('Calling save method with imageFiles:', imageFiles);
-      const docId = await financingAd.save(imageFiles);
-      console.log('Advertisement saved with docId:', docId);
-
-      Alert.alert(
-        'تم الإرسال بنجاح',
-        [
-          {
-            text: 'حسناً',
-            onPress: () =>
-              navigation.navigate('MainDrawer', {
-                screen: 'MyAds',
-             
-              }),
-          },
-        ]
-      );
+      const developerAd = new RealEstateDeveloperAdvertisement(adData);
+      console.log('Calling save with imageFiles:', imageFiles);
+      const docId = await developerAd.save(imageFiles);
+    Alert.alert(
+              'نجح الإرسال',
+              'تم رفع إعلانك وهو الآن قيد المراجعة',
+              [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+            );
     } catch (error) {
-      console.error('Error saving financing ad:', error);
-      Alert.alert('خطأ', `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
+      console.error('Error saving developer ad:', error);
+      console.log('Navigation to MyAds after error');
+      navigation.navigate('MyAds');
     } finally {
       setLoading(false);
+      console.log('handleSubmit completed, loading set to false');
     }
   };
 
   const getFieldLabel = (key) => {
     const labels = {
-      title: 'عنوان الإعلان',
+      developer_name: 'اسم المطور',
       description: 'الوصف',
-      org_name: 'اسم الجهة',
+      project_types: 'نوع المشروع',
       phone: 'رقم الهاتف',
-      start_limit: 'الحد الأدنى (جنيه)',
-      end_limit: 'الحد الأقصى (جنيه)',
-      interest_rate_upto_5: 'فائدة حتى 5 سنوات (%)',
-      interest_rate_upto_10: 'فائدة حتى 10 سنوات (%)',
-      interest_rate_above_10: 'فائدة أكثر من 10 سنوات (%)',
+      location: 'موقع المشروع',
+      price_start_from: 'السعر من (جنيه)',
+      price_end_to: 'السعر إلى (جنيه)',
+      type_of_user: 'نوع المستخدم',
+      rooms: 'عدد الغرف',
+      bathrooms: 'عدد الحمامات',
+      floor: 'الطابق',
+      furnished: 'مفروش',
+      status: 'حالة العقار',
+      paymentMethod: 'طريقة الدفع',
+      negotiable: 'قابل للتفاوض',
+      deliveryTerms: 'شروط التسليم',
+      area: 'المساحة (م²)',
     };
     return labels[key] || key;
   };
@@ -168,7 +174,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>مراجعة إعلان التمويل</Text>
+          <Text style={styles.title}>مراجعة إعلان المطور</Text>
           <Text style={styles.subtitle}>
             راجع بيانات إعلانك قبل الإرسال النهائي
           </Text>
@@ -194,7 +200,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
               return (
                 <View key={key} style={styles.row}>
                   <Text style={styles.label}>{getFieldLabel(key)}</Text>
-                  <Text style={styles.value}>{value}</Text>
+                  <Text style={styles.value}>{value.toString()}</Text>
                 </View>
               );
             })
@@ -408,4 +414,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DisplayInfoAddFinancingAds;
+export default DisplayInfoAddDeveloperAds;
