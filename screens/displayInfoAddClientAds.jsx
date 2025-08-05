@@ -85,11 +85,11 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
 
       const advertisement = new ClientAdvertisement(advertisementData);
       await advertisement.save(imageFiles);
-      Alert.alert(
-        'نجح الإرسال',
-        'تم رفع إعلانك وهو الآن قيد المراجعة',
-        [{ text: 'حسناً', onPress: () => navigation.navigate('home') }]
-      );
+    Alert.alert(
+              'نجح الإرسال',
+              'تم رفع إعلانك وهو الآن قيد المراجعة',
+              [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+            );
     } catch (error) {
       console.error('Error submitting advertisement:', error);
       Alert.alert(

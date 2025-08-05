@@ -69,39 +69,53 @@ export default function Advertise() {
     },
   ];
 
-  const handleNavigate = (item) => {
-    console.log('Advertise: handleNavigate called with item:', item, 'userType:', userType, 'organizationType:', organizationType);
+const handleNavigate = (item) => {
+  console.log('Advertise: handleNavigate called with item:', item, 'userType:', userType, 'organizationType:', organizationType);
 
-    if (!user || !userType) {
-      console.log('Advertise: No user or userType, redirecting to Login');
-      Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً', [
-        { text: 'موافق', onPress: () => navigation.navigate('Login') },
-      ]);
+  const typeMap = {
+    financer: 'ممول عقاري أو ممول عقارى',
+    developer: 'مطور عقاري أو مطور عقارى',
+    client: 'عميل',
+  };
+
+  if (!user || !userType) {
+    Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً', [
+      { text: 'موافق', onPress: () => navigation.navigate('Login') },
+    ]);
+    return;
+  }
+
+  if (userType === 'admin') {
+    navigation.navigate(item.route);
+    return;
+  }
+
+  if (userType === 'organization') {
+    if (['ممول عقاري', 'ممول عقارى'].includes(organizationType) && item.type === 'financer') {
+      navigation.navigate('AddFinancingAds');
+      return;
+    } else if (['مطور عقاري', 'مطور عقارى'].includes(organizationType) && item.type === 'developer') {
+      navigation.navigate('AddDeveloperAds');
+      return;
+    } else {
+      Alert.alert(
+        'غير مصرح',
+        `غير مصرح لك بالدخول لهذا القسم. يُرجى التسجيل كـ ${typeMap[item.type] || item.type} لتتمكن من الدخول.`
+      );
       return;
     }
+  }
 
-    if (userType === 'admin') {
-      console.log('Advertise: Admin user, navigating to', item.route);
-      navigation.navigate(item.route);
-    } else if (userType === 'organization') {
-      if (['ممول عقاري', 'ممول عقارى'].includes(organizationType) && item.type === 'financer') {
-        console.log('Advertise: Organization (ممول عقاري/عقارى) user, navigating to AddFinancingAds');
-        navigation.navigate('AddFinancingAds');
-      } else if (['مطور عقاري', 'مطور عقارى'].includes(organizationType) && item.type === 'developer') {
-        console.log('Advertise: Organization (مطور عقاري/عقارى) user, navigating to AddDeveloperAds');
-        navigation.navigate('AddDeveloperAds');
-      } else {
-        console.log(`Advertise: Access denied for organization type ${organizationType} to ${item.route}`);
-        Alert.alert('غير مصرح', 'غير مصرح لك بالدخول لهذا القسم');
-      }
-    } else if (userType === item.type) {
-      console.log(`Advertise: ${userType} user, navigating to`, item.route);
-      navigation.navigate(item.route);
-    } else {
-      console.log(`Advertise: Access denied for userType ${userType} to ${item.route}`);
-      Alert.alert('غير مصرح', 'غير مصرح لك بالدخول لهذا القسم');
-    }
-  };
+  if (userType === item.type) {
+    navigation.navigate(item.route);
+  } else {
+    Alert.alert(
+      'غير مصرح',
+      `غير مصرح لك بالدخول لهذا القسم. يُرجى التسجيل كـ ${typeMap[item.type] || item.type} لتتمكن من الدخول.`
+    );
+  }
+};
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

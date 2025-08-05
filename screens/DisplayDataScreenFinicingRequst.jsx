@@ -29,8 +29,6 @@ const handleConfirm = async () => {
     if (!auth.currentUser) {
       throw new Error('لا يوجد مستخدم مسجل دخول');
     }
-
-    // التأكد من وجود advertisementId
     if (!advertisementId) {
       throw new Error('معرّف الإعلان غير متوفر');
     }
@@ -57,13 +55,13 @@ const handleConfirm = async () => {
       phone_number: formData.phone_number || '',
       status: 'pending',
       reviewStatus: 'pending',
-      submitted_at: new Date(), // إضافة تاريخ التقديم
+      submitted_at: new Date(), 
     });
 
     console.log('Saving financing request:', {
       user_id: financingRequest.user_id,
       advertisement_id: financingRequest.advertisement_id,
-      advertisement_title: financingRequest.advertisement_title, // تسجيل العنوان
+      advertisement_title: financingRequest.advertisement_title, 
       monthly_income: financingRequest.monthly_income,
       financing_amount: financingRequest.financing_amount,
     });
@@ -77,7 +75,7 @@ const handleConfirm = async () => {
       [
         {
           text: 'حسناً',
-          onPress: () => navigation.navigate('MyOrders', { userId: auth.currentUser.uid }) // التوجيه إلى MyOrders
+          onPress: () => navigation.navigate('MyOrders', { userId: auth.currentUser.uid }) 
         }
       ]
     );

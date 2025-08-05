@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   picker: {
-    height: 50,
+    height: 60,
     textAlign: 'right',
   },
 });
