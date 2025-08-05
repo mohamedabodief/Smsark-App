@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Layout from '../src/Layout';
 import { useRoute } from '@react-navigation/native';
+import FinancingRequest from '../FireBase/modelsWithOperations/FinancingRequest';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required('الاسم مطلوب'),
@@ -27,9 +28,10 @@ const validationSchema = Yup.object().shape({
   maritalStatus: Yup.string().required('الحالة الاجتماعية مطلوبة'),
 });
 
-const FinancingRequest = ({ navigation }) => {
+const FinancingRequestComponent = ({ navigation }) => {
   const route = useRoute();
   const { advertisementId, advertisementTitle, userId } = route.params || {};
+  const [monthlyInstallment, setMonthlyInstallment] = useState('0.00');
 
   return (
     <Layout>
@@ -53,14 +55,35 @@ const FinancingRequest = ({ navigation }) => {
                 maritalStatus: '',
               }}
               validationSchema={validationSchema}
-              onSubmit={(values) => {
-                console.log('Submitting form with values:', values, 'advertisementId:', advertisementId);
-                navigation.navigate('DisplayDataScreenFinicingRequst', {
-                  formData: values,
-                  advertisementId,
-                  advertisementTitle,
-                  userId,
-                });
+              onSubmit={async (values, { setFieldError }) => {
+                try {
+                  const financingRequest = new FinancingRequest({
+                    user_id: userId || 'guest',
+                    advertisement_id: advertisementId,
+                    financing_amount: parseFloat(values.financing_amount),
+                    repayment_years: parseInt(values.repaymentPeriod, 10),
+                  });
+                  const ad = await financingRequest.getAdvertisement();
+                  if (!ad) {
+                    setFieldError('financing_amount', 'إعلان التمويل غير موجود');
+                    return;
+                  }
+                  const { start_limit, end_limit } = ad;
+                  if (values.financing_amount < start_limit || values.financing_amount > end_limit) {
+                    setFieldError('financing_amount', `مبلغ التمويل يجب أن يكون بين ${start_limit} و ${end_limit}`);
+                    return;
+                  }
+                  console.log('Submitting form with values:', values, 'advertisementId:', advertisementId);
+                  navigation.navigate('DisplayDataScreenFinicingRequst', {
+                    formData: values,
+                    advertisementId,
+                    advertisementTitle,
+                    userId,
+                  });
+                } catch (error) {
+                  console.error('FinancingRequest: Error validating financing amount:', error.message);
+                  setFieldError('financing_amount', 'حدث خطأ أثناء التحقق من مبلغ التمويل');
+                }
               }}
             >
               {({
@@ -71,134 +94,189 @@ const FinancingRequest = ({ navigation }) => {
                 errors,
                 touched,
                 setFieldValue,
-              }) => (
-                <>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>الاسم</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('name')}
-                      onBlur={handleBlur('name')}
-                      value={values.name}
-                      placeholder="ادخل الاسم"
-                    />
-                    {touched.name && errors.name && <Text style={styles.error}>{errors.name}</Text>}
-                  </View>
+                setFieldError,
+              }) => {
+                useEffect(() => {
+                  const calculateInstallment = async () => {
+                    if (values.financing_amount && values.repaymentPeriod && advertisementId) {
+                      try {
+                        const financingRequest = new FinancingRequest({
+                          user_id: userId || 'guest',
+                          advertisement_id: advertisementId,
+                          financing_amount: parseFloat(values.financing_amount),
+                          repayment_years: parseInt(values.repaymentPeriod, 10),
+                          monthly_income: parseFloat(values.income) || 0,
+                          job_title: values.jobTitle || '',
+                          employer: values.employer || '',
+                          age: parseInt(values.age, 10) || 0,
+                          marital_status: values.maritalStatus || '',
+                          dependents: parseInt(values.dependents, 10) || 0,
+                        });
+                        const ad = await financingRequest.getAdvertisement();
+                        if (!ad) {
+                          setMonthlyInstallment('0.00');
+                          return;
+                        }
+                        const { start_limit, end_limit } = ad;
+                        if (values.financing_amount < start_limit || values.financing_amount > end_limit) {
+                          setMonthlyInstallment('0.00');
+                          return;
+                        }
+                        const installment = await financingRequest.calculateMonthlyInstallment();
+                        console.log('FinancingRequest: Calculated monthly installment:', installment);
+                        setMonthlyInstallment(installment);
+                      } catch (error) {
+                        console.error('FinancingRequest: Error calculating monthly installment:', error.message);
+                        setMonthlyInstallment('0.00');
+                      }
+                    } else {
+                      setMonthlyInstallment('0.00');
+                    }
+                  };
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>الدخل الشهري</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('income')}
-                      onBlur={handleBlur('income')}
-                      value={values.income}
-                      placeholder="مثال: 5000"
-                      keyboardType="numeric"
-                    />
-                    {touched.income && errors.income && <Text style={styles.error}>{errors.income}</Text>}
-                  </View>
+                  calculateInstallment();
+                }, [values.financing_amount, values.repaymentPeriod, advertisementId, userId]);
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>المسمى الوظيفي</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('jobTitle')}
-                      onBlur={handleBlur('jobTitle')}
-                      value={values.jobTitle}
-                      placeholder="مثال: مهندس"
-                    />
-                    {touched.jobTitle && errors.jobTitle && <Text style={styles.error}>{errors.jobTitle}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>جهة العمل</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('employer')}
-                      onBlur={handleBlur('employer')}
-                      value={values.employer}
-                      placeholder="مثال: شركة XYZ"
-                    />
-                    {touched.employer && errors.employer && <Text style={styles.error}>{errors.employer}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>السن</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('age')}
-                      onBlur={handleBlur('age')}
-                      value={values.age}
-                      placeholder="مثال: 30"
-                      keyboardType="numeric"
-                    />
-                    {touched.age && errors.age && <Text style={styles.error}>{errors.age}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>عدد المعالين</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('dependents')}
-                      onBlur={handleBlur('dependents')}
-                      value={values.dependents}
-                      placeholder="مثال: 2"
-                      keyboardType="numeric"
-                    />
-                    {touched.dependents && errors.dependents && <Text style={styles.error}>{errors.dependents}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>مدة السداد (بالسنوات)</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('repaymentPeriod')}
-                      onBlur={handleBlur('repaymentPeriod')}
-                      value={values.repaymentPeriod}
-                      placeholder="مثال: 10"
-                      keyboardType="numeric"
-                    />
-                    {touched.repaymentPeriod && errors.repaymentPeriod && <Text style={styles.error}>{errors.repaymentPeriod}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>مبلغ التمويل</Text>
-                    <TextInput
-                      style={styles.input}
-                      onChangeText={handleChange('financing_amount')}
-                      onBlur={handleBlur('financing_amount')}
-                      value={values.financing_amount}
-                      placeholder="مثال: 100000"
-                      keyboardType="numeric"
-                    />
-                    {touched.financing_amount && errors.financing_amount && <Text style={styles.error}>{errors.financing_amount}</Text>}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>الحالة الاجتماعية</Text>
-                    <View style={styles.pickerWrapper}>
-                      <Picker
-                        selectedValue={values.maritalStatus}
-                        onValueChange={(value) => setFieldValue('maritalStatus', value)}
-                        style={styles.picker}
-                      >
-                        <Picker.Item label="اختر الحالة" value="" />
-                        <Picker.Item label="أعزب" value="single" />
-                        <Picker.Item label="متزوج" value="married" />
-                        <Picker.Item label="مطلق" value="divorced" />
-                        <Picker.Item label="أرمل" value="widowed" />
-                      </Picker>
+                return (
+                  <>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>الاسم</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('name')}
+                        onBlur={handleBlur('name')}
+                        value={values.name}
+                        placeholder="ادخل الاسم"
+                      />
+                      {touched.name && errors.name && <Text style={styles.error}>{errors.name}</Text>}
                     </View>
-                    {touched.maritalStatus && errors.maritalStatus && (
-                      <Text style={styles.error}>{errors.maritalStatus}</Text>
-                    )}
-                  </View>
 
-                  <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                    <Text style={styles.buttonText}>إرسال</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>الدخل الشهري</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('income')}
+                        onBlur={handleBlur('income')}
+                        value={values.income}
+                        placeholder="مثال: 5000"
+                        keyboardType="numeric"
+                      />
+                      {touched.income && errors.income && <Text style={styles.error}>{errors.income}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>المسمى الوظيفي</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('jobTitle')}
+                        onBlur={handleBlur('jobTitle')}
+                        value={values.jobTitle}
+                        placeholder="مثال: مهندس"
+                      />
+                      {touched.jobTitle && errors.jobTitle && <Text style={styles.error}>{errors.jobTitle}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>جهة العمل</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('employer')}
+                        onBlur={handleBlur('employer')}
+                        value={values.employer}
+                        placeholder="مثال: شركة XYZ"
+                      />
+                      {touched.employer && errors.employer && <Text style={styles.error}>{errors.employer}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>السن</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('age')}
+                        onBlur={handleBlur('age')}
+                        value={values.age}
+                        placeholder="مثال: 30"
+                        keyboardType="numeric"
+                      />
+                      {touched.age && errors.age && <Text style={styles.error}>{errors.age}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>عدد المعالين</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('dependents')}
+                        onBlur={handleBlur('dependents')}
+                        value={values.dependents}
+                        placeholder="مثال: 2"
+                        keyboardType="numeric"
+                      />
+                      {touched.dependents && errors.dependents && <Text style={styles.error}>{errors.dependents}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>مدة السداد (بالسنوات)</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('repaymentPeriod')}
+                        onBlur={handleBlur('repaymentPeriod')}
+                        value={values.repaymentPeriod}
+                        placeholder="مثال: 10"
+                        keyboardType="numeric"
+                      />
+                      {touched.repaymentPeriod && errors.repaymentPeriod && <Text style={styles.error}>{errors.repaymentPeriod}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>مبلغ التمويل</Text>
+                      <TextInput
+                        style={styles.input}
+                        onChangeText={handleChange('financing_amount')}
+                        onBlur={handleBlur('financing_amount')}
+                        value={values.financing_amount}
+                        placeholder="مثال: 100000"
+                        keyboardType="numeric"
+                      />
+                      {touched.financing_amount && errors.financing_amount && <Text style={styles.error}>{errors.financing_amount}</Text>}
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>القسط الشهري (جنيه مصرى)</Text>
+                      <TextInput
+                        style={[styles.input, styles.disabledInput]}
+                        value={monthlyInstallment}
+                        editable={false}
+                        placeholder="سيتم الحساب تلقائيًا"
+                        placeholderTextColor="#999"
+                      />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>الحالة الاجتماعية</Text>
+                      <View style={styles.pickerWrapper}>
+                        <Picker
+                          selectedValue={values.maritalStatus}
+                          onValueChange={(value) => setFieldValue('maritalStatus', value)}
+                          style={styles.picker}
+                        >
+                          <Picker.Item label="اختر الحالة" value="" />
+                          <Picker.Item label="أعزب" value="single" />
+                          <Picker.Item label="متزوج" value="married" />
+                          <Picker.Item label="مطلق" value="divorced" />
+                          <Picker.Item label="أرمل" value="widowed" />
+                        </Picker>
+                      </View>
+                      {touched.maritalStatus && errors.maritalStatus && (
+                        <Text style={styles.error}>{errors.maritalStatus}</Text>
+                      )}
+                    </View>
+
+                    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                      <Text style={styles.buttonText}>إرسال</Text>
+                    </TouchableOpacity>
+                  </>
+                );
+              }}
             </Formik>
           </ScrollView>
         </SafeAreaView>
@@ -207,7 +285,7 @@ const FinancingRequest = ({ navigation }) => {
   );
 };
 
-export default FinancingRequest;
+export default FinancingRequestComponent;
 
 const styles = StyleSheet.create({
   scrollContent: {
@@ -248,6 +326,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     textAlign: 'right',
+  },
+  disabledInput: {
+    backgroundColor: '#f0f0f0',
+    color: '#333',
   },
   error: {
     color: 'red',

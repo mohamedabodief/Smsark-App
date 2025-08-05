@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Drawer, IconButton, useTheme, Text, Alert } from 'react-native-paper';
 import { AuthContext } from '../../../context/AuthContext';
+import { CommonActions } from '@react-navigation/native';
 
 export default function DrawerContent({ navigation, toggleMode, unreadCount, totalUnreadMessages, userType }) {
   const { logout, user } = useContext(AuthContext);
@@ -14,7 +15,13 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
     try {
       console.log('DrawerContent: Attempting to sign out');
       await logout();
-      console.log('DrawerContent: Logout initiated');
+      console.log('DrawerContent: Logout successful, navigating to Login');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
     } catch (error) {
       console.error('DrawerContent: Logout failed:', error);
       Alert.alert('خطأ', 'فشل تسجيل الخروج. حاولي مرة أخرى.');

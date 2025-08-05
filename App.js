@@ -1,14 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
-import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme, useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider, useDispatch } from 'react-redux';
 import { store } from './src/redux/store';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
-import { ActivityIndicator } from 'react-native-paper';
 import { CommonActions } from '@react-navigation/native';
 import { loadFavoritesAsync } from './src/redux/favoritesSlice';
 import { useFonts } from 'expo-font';
@@ -47,8 +46,9 @@ import MyOrders from './screens/MyOrdeers';
 import AddFinancingAdFormNative from './screens/FincingRequstAndDiaplay';
 import DisplayInfoAddFinancingAds from './screens/displayInfoFincingAds';
 import RequestsForAd from './screens/RequestsForAd';
-import ContactUsScreen from './screens/ContactWithUs'; 
+import ContactUsScreen from './screens/ContactWithUs';
 import FinancingRequestScreen from './screens/finicingRequst';
+import SplashScreenComponent from './screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -106,7 +106,7 @@ function FormStackNavigator() {
         component={FinancingRequest}
         initialParams={{ userId }}
       />
-        <Stack.Screen
+      <Stack.Screen
         name="FinancingRequestScreen"
         component={FinancingRequestScreen}
         initialParams={{ userId }}
@@ -138,7 +138,7 @@ function MainStackNavigator() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Home">
-      <Stack.Screen name="Home" component={Home} initialParams={{ userId }} />
+      <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Sell" component={SellPage} initialParams={{ userId }} />
       <Stack.Screen name="developer" component={DeveloperPage} initialParams={{ userId }} />
       <Stack.Screen name="financing" component={FinancingPage} initialParams={{ userId }} />
@@ -250,68 +250,52 @@ function AppDrawer({ toggleMode }) {
   );
 }
 
-function AppContent({ navigation, toggleMode }) {
+function AppContent({ toggleMode }) {
   const { user, loading } = useContext(AuthContext);
-  const [initialRoute, setInitialRoute] = useState(null);
-  const hasNavigated = useRef(false); 
+  const navigation = useNavigation(); 
+  const hasNavigated = useRef(false);
+
+  console.log('AppContent: Rendering with loading:', loading, 'user:', user ? user.uid : 'none');
 
   useEffect(() => {
-    console.log('AppContent: useEffect - loading:', loading, 'user:', user ? user.uid : 'none');
+    console.log('AppContent: useEffect - loading:', loading, 'hasNavigated:', hasNavigated.current);
     if (loading || hasNavigated.current) {
-      console.log('AppContent: Skipping navigation - loading:', loading, 'hasNavigated:', hasNavigated.current);
+      console.log('AppContent: Skipping navigation');
       return;
     }
 
-    if (!user || !user.uid) {
-      console.log('AppContent: No user or no uid, setting initialRoute to Login');
-      setInitialRoute('Login');
-      if (navigation) {
-        hasNavigated.current = true;
-        console.log('AppContent: Resetting navigation to Login');
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: 'Login' }],
-          })
-        );
-        console.log('AppContent: Navigation reset to Login completed');
-      }
-    } else {
-      console.log('AppContent: User exists, setting initialRoute to MainApp');
-      setInitialRoute('MainApp');
-      if (navigation) {
-        hasNavigated.current = true;
-        console.log('AppContent: Resetting navigation to MainApp');
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'MainApp',
-                params: { screen: 'MainStack', params: { screen: 'Home' } },
-              },
-            ],
-          })
-        );
-        console.log('AppContent: Navigation reset to MainApp completed');
-      }
-    }
+    const navigateAfterSplash = () => {
+      setTimeout(() => {
+        if (!loading && !hasNavigated.current) {
+          hasNavigated.current = true;
+          const routeName = user && user.uid ? 'MainApp' : 'Login';
+          console.log('AppContent: Navigating to:', routeName);
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                {
+                  name: routeName,
+                  params: routeName === 'MainApp' ? { screen: 'MainStack', params: { screen: 'Home' } } : {},
+                },
+              ],
+            })
+          );
+        }
+      }, 3000);
+    };
+
+    navigateAfterSplash();
+
+    return () => {
+      console.log('AppContent: Cleaning up useEffect');
+    };
   }, [loading, user, navigation]);
-
-  if (loading || initialRoute === null) {
-    console.log('AppContent: Showing loading indicator');
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#4D00B1" />
-      </View>
-    );
-  }
-
-  console.log('AppContent: Rendering Stack.Navigator with initialRouteName:', initialRoute);
 
   return (
     <ErrorBoundary>
-      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="SplashScreen">
+        <Stack.Screen name="SplashScreen" component={SplashScreenComponent} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Register" component={RegisterStack} />

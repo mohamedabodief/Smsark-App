@@ -14,8 +14,11 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (isMounted.current) {
         console.log('AuthProvider: Auth state changed, user:', currentUser ? currentUser.uid : 'none');
-        setUser(currentUser);
-        setLoading(false);
+        // فحص إضافي لمنع التحديثات المتكررة
+        if (JSON.stringify(currentUser) !== JSON.stringify(user) || loading) {
+          setUser(currentUser);
+          setLoading(false);
+        }
       }
     });
 
@@ -24,7 +27,7 @@ export const AuthProvider = ({ children }) => {
       isMounted.current = false;
       unsubscribe();
     };
-  }, []);
+  }, [user, loading]);
 
   const login = async (user) => {
     try {

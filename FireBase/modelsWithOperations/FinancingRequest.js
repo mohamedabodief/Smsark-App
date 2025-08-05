@@ -15,6 +15,7 @@ import { db } from '../firebaseConfig';
 
 class FinancingRequest {
   #id = null;
+
   constructor(data) {
     this.#id = data.id || null;
     this.user_id = data.user_id;
