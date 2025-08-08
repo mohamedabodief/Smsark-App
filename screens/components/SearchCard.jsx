@@ -19,10 +19,8 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
         .then(count => {
           setRequestCount(count);
           setLoadingRequests(false);
-          console.log(`Request count for ad ${id}: ${count}`);
         })
         .catch(error => {
-          console.error(`Error fetching request count for ad ${id}:`, error.message);
           setRequestCount(0);
           setLoadingRequests(false);
         });
@@ -66,11 +64,9 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
   const handlePress = () => {
     if (isDeleting) return;
     if (!navigation) {
-      console.error('Navigation prop is undefined in SearchCard');
       Alert.alert('خطأ', 'مشكلة في التنقل. يرجى المحاولة لاحقًا.');
       return;
     }
-    console.log('Navigating with source:', source, 'and id:', id);
     let targetScreen;
     if (isDeveloper) {
       targetScreen = 'DevelopmentDetails';
@@ -79,15 +75,12 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
     } else if (isClient) {
       targetScreen = 'ClientDetails';
     } else {
-      console.warn('Unknown source type:', source);
       Alert.alert('خطأ', 'نوع الإعلان غير معروف.');
       return;
     }
     try {
       navigation.navigate(targetScreen, { id }); 
-      console.log(`Navigated to ${targetScreen} with id: ${id}`);
     } catch (error) {
-      console.error('Navigation error:', error.message || error);
       Alert.alert('خطأ', 'فشل في الانتقال إلى صفحة التفاصيل: ' + (error.message || 'يرجى المحاولة لاحقًا'));
     }
   };
@@ -95,7 +88,6 @@ const SearchCard = ({ name, price, imageUrl, location, type, id, source, onDelet
   const handleViewRequests = () => {
     if (isFunder) {
       navigation.navigate('MainStack', { screen: 'RequestsForAd', params: { adId: id, adTitle: fields.name } });
-      console.log('Navigating to RequestsForAd with params:', { adId: id, adTitle: fields.name });
     }
   };
 

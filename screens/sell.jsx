@@ -108,7 +108,6 @@ const SellPage = ({navigation}) => {
       setAds(filteredAds);
       setModalVisible(false);
     } catch (error) {
-      console.error('Error applying filters:', error);
       setError('فشل في جلب الإعلانات');
     } finally {
       setLoading(false);
@@ -126,7 +125,6 @@ const SellPage = ({navigation}) => {
       const allAds = await ClientAdvertisement.getAll();
       setAds(allAds);
     } catch (error) {
-      console.error('Error loading ads:', error);
       setError('فشل في جلب الإعلانات');
     } finally {
       setLoading(false);

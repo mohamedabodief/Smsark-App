@@ -31,7 +31,7 @@ const storeContactMessage = async (contactData) => {
       status: 'pending' // pending, read, replied
     });
 
-    console.log('Contact message stored with ID:', docRef.id);
+  
 
     return {
       success: true,
@@ -40,7 +40,7 @@ const storeContactMessage = async (contactData) => {
     };
 
   } catch (error) {
-    console.error('Error storing contact message:', error);
+
     return {
       success: false,
       error: 'حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.'

@@ -39,17 +39,13 @@ export default function DetailsForFinancingAds() {
           const userData = await User.getByUid(auth.currentUser.uid);
           if (userData && userData.type_of_user) {
             setUserType(userData.type_of_user);
-            console.log('User type:', userData.type_of_user);
           } else {
             setUserType(null);
-            console.log('No user type found');
           }
         } catch (error) {
-          console.error('Error fetching user type:', error);
           setUserType(null);
         }
       } else {
-        console.log('No user logged in');
         setUserType(null);
       }
 
@@ -73,7 +69,6 @@ export default function DetailsForFinancingAds() {
           setMainImage(adDetails.images[0]);
         }
       } catch (error) {
-        console.error("Error fetching ad details:", error);
         Alert.alert("خطأ", "حدث خطأ أثناء تحميل البيانات");
         navigation.navigate('Home');
       } finally {

@@ -73,7 +73,7 @@ const FavoritesScreen = () => {
               style={styles.card}
             >
               <Image
-                source={{ uri: item.image?.[0] || item.image || 'https://via.placeholder.com/300x160' }}
+                source={{ uri: item.images?.[0] || item.image || 'https://via.placeholder.com/300x160' }}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 12,
+    direction:'rtl'
   },
   price: {
     color: '#1976d2',

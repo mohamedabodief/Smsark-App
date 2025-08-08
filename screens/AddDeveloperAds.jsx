@@ -75,8 +75,6 @@ const ModernDeveloperForm = ({ navigation, route }) => {
   const watchNegotiable = watch('negotiable');
 
   useEffect(() => {
-    console.log('Navigation:', navigation);
-    console.log('Route:', route);
   }, [navigation, route]);
 
   const pickImage = async () => {
@@ -102,8 +100,6 @@ const ModernDeveloperForm = ({ navigation, route }) => {
   };
 
   const onSubmit = (data) => {
-    console.log('Form data:', data);
-    console.log('Images:', images);
 
     if (navigation) {
       navigation.navigate('FormStack', {
@@ -115,7 +111,6 @@ const ModernDeveloperForm = ({ navigation, route }) => {
    
       });
     } else {
-      console.log('Navigation is not available');
       Alert.alert('خطأ', 'التنقل غير متوفر، يرجى التحقق من إعدادات التنقل');
     }
   };

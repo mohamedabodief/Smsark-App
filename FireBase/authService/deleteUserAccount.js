@@ -28,7 +28,6 @@ export default async function deleteUserAccount(uid) {
     try {
       await Notification.deleteAllByUser(uid);
     } catch (error) {
-      console.warn('Failed to delete notifications:', error);
     }
 
     // 3. Delete user's favorites
@@ -38,7 +37,6 @@ export default async function deleteUserAccount(uid) {
       const favoritesDeletions = favoritesSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(favoritesDeletions);
     } catch (error) {
-      console.warn('Failed to delete favorites:', error);
     }
 
     // 4. Delete user's financing requests
@@ -48,7 +46,6 @@ export default async function deleteUserAccount(uid) {
       const requestsDeletions = requestsSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(requestsDeletions);
     } catch (error) {
-      console.warn('Failed to delete financing requests:', error);
     }
 
     // 5. Delete user's advertisements (if any)
@@ -77,7 +74,6 @@ export default async function deleteUserAccount(uid) {
       const homepageAdsDeletions = homepageAdsSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(homepageAdsDeletions);
     } catch (error) {
-      console.warn('Failed to delete advertisements:', error);
     }
 
     // 6. Delete user's inquiries/transactions
@@ -87,7 +83,7 @@ export default async function deleteUserAccount(uid) {
       const inquiriesDeletions = inquiriesSnapshot.docs.map(doc => deleteDoc(doc.ref));
       await Promise.all(inquiriesDeletions);
     } catch (error) {
-      console.warn('Failed to delete inquiries:', error);
+
     }
 
     // 7. Delete user from Firestore
@@ -98,7 +94,7 @@ export default async function deleteUserAccount(uid) {
 
     return { success: true };
   } catch (error) {
-    console.error('Error deleting user account:', error);
+ 
     
     // Handle specific Firebase Auth errors
     if (error.code === 'auth/requires-recent-login') {

@@ -68,7 +68,6 @@ const FinancingPage = ({ navigation }) => { // إضافة navigation كخاصي�
       setAds(filteredAds);
       setModalVisible(false);
     } catch (error) {
-      console.error('Error applying filters:', error);
       setError('فشل في جلب الإعلانات');
     } finally {
       setLoading(false);
@@ -86,7 +85,6 @@ const FinancingPage = ({ navigation }) => { // إضافة navigation كخاصي�
       const allAds = await FinancingAdvertisement.getAll();
       setAds(allAds);
     } catch (error) {
-      console.error('Error loading ads:', error);
       setError('فشل في جلب الإعلانات');
     } finally {
       setLoading(false);

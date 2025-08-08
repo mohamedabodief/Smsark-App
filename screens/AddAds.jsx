@@ -18,7 +18,9 @@ import * as yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import Layout from '../src/Layout';
+import { auth } from '../FireBase/firebaseConfig';
 
+// تحديث schema التحقق لتشمل adPackage
 const validationSchema = yup.object().shape({
   title: yup.string().required('عنوان الإعلان مطلوب'),
   propertyType: yup.string().required('نوع العقار مطلوب'),
@@ -33,52 +35,109 @@ const validationSchema = yup.object().shape({
   adType: yup.string().required('نوع الإعلان مطلوب'),
   adStatus: yup.string().required('حالة الإعلان مطلوبة'),
   description: yup.string().required('الوصف مطلوب'),
+  adPackage: yup.string().oneOf(['1', '2', '3'], 'الباقة غير صالحة').required('الباقة مطلوبة'),
 });
 
-const pickImages = async () => {
+// قائمة الباقات
+const packages = {
+  '1': { label: 'باقة الأساس', price: '100 جنيه', duration: '7 أيام' },
+  '2': { label: 'باقة النخبة', price: '150 جنيه', duration: '14 يوم' },
+  '3': { label: 'باقة التميز', price: '200 جنيه', duration: '21 يوم' },
+};
+
+// دالة للتحقق من الإذن
+const requestPermission = async () => {
   try {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      Alert.alert('الإذن مرفوض', 'نحتاج إلى إذن للوصول إلى المعرض لاختيار الصور.');
-      throw new Error('الإذن للوصول إلى المعرض مرفوض');
+      Alert.alert(
+        'الإذن مرفوض',
+        'نحتاج إلى إذن للوصول إلى المعرض لاختيار الصور. برجاء تفعيل الإذن من إعدادات الجهاز.',
+        [{ text: 'حسناً' }]
+      );
+      return false;
     }
+    return true;
+  } catch (error) {
+    Alert.alert('خطأ', `فشل التحقق من الإذن: ${error.message}`);
+    return false;
+  }
+};
+
+// دالة لاختيار صور الإعلان
+const pickImages = async () => {
+  try {
+    const hasPermission = await requestPermission();
+    if (!hasPermission) return [];
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
-      selectionLimit: 4, // تحديد الحد الأقصى للصور
+      selectionLimit: 4,
       quality: 0.5,
     });
 
     if (result.canceled || !result.assets || result.assets.length === 0) {
-      throw new Error('تم إلغاء اختيار الصور');
+      return [];
     }
 
-    const images = result.assets.map((asset) => ({ uri: asset.uri }));
-    console.log('Picked images:', images);
+    const images = result.assets.map((asset) => {
+      if (!['image/jpeg', 'image/png'].includes(asset.mimeType)) {
+        Alert.alert('خطأ', 'صيغة الصورة غير مدعومة. برجاء اختيار صورة بصيغة JPEG أو PNG.');
+        return null;
+      }
+      return { uri: asset.uri, file: asset };
+    }).filter(Boolean);
+
     return images;
   } catch (error) {
-    console.error('Pick Images Error:', error);
-    throw error;
+    Alert.alert('خطأ', `فشل اختيار الصور: ${error.message}`);
+    return [];
   }
 };
 
-const AddAds = ({ navigation, route }) => {
+// دالة لاختيار صورة الإيصال
+const pickReceipt = async () => {
+  try {
+    const hasPermission = await requestPermission();
+    if (!hasPermission) return null;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
+
+    if (result.canceled || !result.assets || result.assets.length === 0) {
+      return null;
+    }
+
+    const asset = result.assets[0];
+    if (!asset.uri || !['image/jpeg', 'image/png'].includes(asset.mimeType)) {
+      Alert.alert('خطأ', 'صيغة الصورة غير مدعومة. برجاء اختيار صورة بصيغة JPEG أو PNG.');
+      return null;
+    }
+
+    return { uri: asset.uri, file: asset };
+  } catch (error) {
+    Alert.alert('خطأ', `فشل اختيار صورة الإيصال: ${error.message}`);
+    return null;
+  }
+};
+
+const AddAds = ({ navigation }) => {
   const [images, setImages] = useState([]);
+  const [receipt, setReceipt] = useState(null);
   const [imageError, setImageError] = useState('');
+  const [receiptError, setReceiptError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    console.log('AddAds component mounted');
-    console.log('navigation prop:', navigation);
-    console.log('route prop:', route);
-  }, [navigation, route]);
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
@@ -96,8 +155,11 @@ const AddAds = ({ navigation, route }) => {
       adType: '',
       adStatus: '',
       description: '',
+      adPackage: '',
     },
   });
+
+  const selectedPackage = watch('adPackage');
 
   const handleImageUpload = async () => {
     try {
@@ -105,14 +167,28 @@ const AddAds = ({ navigation, route }) => {
       setUploading(true);
       const pickedImages = await pickImages();
       if (pickedImages.length > 0) {
-        // إضافة الصور الجديدة مع التأكد من عدم التجاوز للحد الأقصى (4 صور)
         const newImages = [...images, ...pickedImages].slice(0, 4);
         setImages(newImages);
-        console.log('Images updated:', newImages.map((img) => img.uri));
       }
     } catch (error) {
       setImageError(`فشل اختيار الصور: ${error.message}`);
-      console.error('Image picker error:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleReceiptUpload = async () => {
+    try {
+      setReceiptError('');
+      setUploading(true);
+      const pickedReceipt = await pickReceipt();
+      if (pickedReceipt) {
+        setReceipt(pickedReceipt);
+      } else if (!receipt) {
+        setReceiptError('لم يتم اختيار صورة إيصال. برجاء المحاولة مرة أخرى.');
+      }
+    } catch (error) {
+      setReceiptError(`فشل رفع صورة الإيصال: ${error.message}`);
     } finally {
       setUploading(false);
     }
@@ -122,34 +198,44 @@ const AddAds = ({ navigation, route }) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const removeReceipt = () => {
+    setReceipt(null);
+  };
+
   const onSubmit = async (data) => {
     setSubmitError('');
     setUploading(true);
 
     if (images.length === 0) {
-      setSubmitError('يرجى اختيار صورة واحدة على الأقل');
+      setSubmitError('يرجى اختيار صورة واحدة على الأقل للإعلان');
       setUploading(false);
       return;
     }
-
-    if (!navigation) {
-      setSubmitError('خطأ في التنقل. يرجى المحاولة مرة أخرى.');
+    if (!receipt) {
+      setSubmitError('يرجى رفع صورة الإيصال');
+      setUploading(false);
+      return;
+    }
+    if (!auth.currentUser) {
+      setSubmitError('يجب تسجيل الدخول لإضافة إعلان');
       setUploading(false);
       return;
     }
 
     try {
-      console.log('Navigating with images:', images.map((img) => img.uri));
       navigation.navigate('FormStack', {
         screen: 'DisplayInfoAddClientAds',
         params: {
-          formData: { ...data },
+          formData: {
+            ...data,
+            userId: auth.currentUser.uid,
+          },
           images,
+          receipt,
         },
       });
     } catch (error) {
       setSubmitError(`فشل إرسال النموذج: ${error.message}`);
-      console.error('Submit error:', error);
     } finally {
       setUploading(false);
     }
@@ -158,7 +244,9 @@ const AddAds = ({ navigation, route }) => {
   const handleReset = () => {
     reset();
     setImages([]);
+    setReceipt(null);
     setImageError('');
+    setReceiptError('');
     setSubmitError('');
   };
 
@@ -505,7 +593,65 @@ const AddAds = ({ navigation, route }) => {
               )}
             />
           </View>
-
+    <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📦 اختيار الباقة</Text>
+            <Controller
+              name="adPackage"
+              control={control}
+              render={({ field }) => (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>الباقة</Text>
+                  <View style={[styles.pickerContainer, errors.adPackage && styles.inputError]}>
+                    <Picker
+                      selectedValue={field.value}
+                      onValueChange={field.onChange}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="اختر الباقة" value="" enabled={false} />
+                      {Object.entries(packages).map(([value, pkg]) => (
+                        <Picker.Item key={value} label={pkg.label} value={value} />
+                      ))}
+                    </Picker>
+                  </View>
+                  {errors.adPackage && <Text style={styles.errorText}>{errors.adPackage.message}</Text>}
+                </View>
+              )}
+            />
+            {selectedPackage && packages[selectedPackage] && (
+              <View style={styles.packageDetailsContainer}>
+                <Text style={styles.sectionSubtitle}>تفاصيل الباقة</Text>
+                <View style={styles.packageDetails}>
+                  <Text style={styles.packageDetailText}>الاسم: {packages[selectedPackage].label}</Text>
+                  <Text style={styles.packageDetailText}>السعر: {packages[selectedPackage].price}</Text>
+                  <Text style={styles.packageDetailText}>المدة: {packages[selectedPackage].duration}</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.uploadButton, receipt && styles.disabledButton]}
+                  onPress={handleReceiptUpload}
+                  disabled={uploading }
+                >
+                  <Text style={styles.uploadButtonText}>📄 رفع صورة الإيصال</Text>
+                </TouchableOpacity>
+                {receiptError && <Text style={styles.errorText}>{receiptError}</Text>}
+                {receipt && (
+                  <View style={styles.imagePreviewContainer}>
+                    <View style={styles.imagePreview}>
+                      <Image source={{ uri: receipt.uri }} style={styles.image} />
+                      <TouchableOpacity
+                        style={styles.removeImageButton}
+                        onPress={removeReceipt}
+                      >
+                        <Text style={styles.removeImageText}>✖</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+                {receipt && (
+                  <Text style={styles.imageCount}>تم إضافة صورة الإيصال</Text>
+                )}
+              </View>
+            )}
+          </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.submitButton, uploading && { opacity: 0.6 }]}
@@ -581,6 +727,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'right',
   },
+  sectionSubtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#4D00B1',
+    marginBottom: 12,
+    textAlign: 'right',
+  },
   inputContainer: {
     marginBottom: 20,
   },
@@ -624,15 +777,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e9ecef',
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: 'hidden'
+    
   },
   picker: {
     height: Platform.OS === 'ios' ? 150 : 60,
     width: '100%',
-  },
+  margin:'auto'  },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
+  
   },
   halfWidth: {
     width: '48%',
@@ -694,6 +849,21 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 8,
     fontWeight: '500',
+  },
+  packageDetailsContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+  },
+  packageDetails: {
+    marginBottom: 20,
+  },
+  packageDetailText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 8,
   },
   buttonContainer: {
     marginTop: 30,

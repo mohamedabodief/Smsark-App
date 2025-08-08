@@ -12,7 +12,6 @@ import { useNavigation } from '@react-navigation/native';
 import { auth } from '../../../FireBase/firebaseConfig';
 export default function DevelopmentCard({ item }) {
     const navigation = useNavigation();
-    console.log(item)
     if (!item) {
         return (
             <View style={styles.card}>

@@ -10,27 +10,20 @@ const RequestsForAd = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Route params:', route.params); // تحقق من المعلمات
     if (!adId) {
-      console.error('No adId provided');
       Alert.alert('خطأ', 'معرف الإعلان غير متوفر');
       setLoading(false);
       return;
     }
-
-    console.log('Subscribing to requests for ad:', adId);
     const unsubscribe = FinancingRequest.subscribeByAdvertisementId(adId, (fetchedRequests) => {
-      console.log('Fetched requests for ad:', adId, fetchedRequests);
       setRequests(fetchedRequests);
       setLoading(false);
     }, (error) => {
-      console.error('Error fetching requests:', error.message || error);
       Alert.alert('خطأ', 'فشل في جلب الطلبات: ' + (error.message || 'يرجى المحاولة لاحقًا'));
       setLoading(false);
     });
 
     return () => {
-      console.log('Cleaning up subscription for ad:', adId);
       unsubscribe();
     };
   }, [adId]);
@@ -48,7 +41,6 @@ const RequestsForAd = ({ route, navigation }) => {
               await request.update({ reviewStatus: 'approved' });
               Alert.alert('تم', 'تم قبول الطلب بنجاح');
             } catch (error) {
-              console.error('Error approving request:', error.message || error);
               Alert.alert('خطأ', 'فشل في قبول الطلب: ' + (error.message || 'يرجى المحاولة لاحقًا'));
             }
           },
@@ -70,7 +62,6 @@ const RequestsForAd = ({ route, navigation }) => {
               await request.reject('سبب الرفض');
               Alert.alert('تم', 'تم رفض الطلب بنجاح');
             } catch (error) {
-              console.error('Error rejecting request:', error.message || error);
               Alert.alert('خطأ', 'فشل في رفض الطلب: ' + (error.message || 'يرجى المحاولة لاحقًا'));
             }
           },
@@ -80,12 +71,10 @@ const RequestsForAd = ({ route, navigation }) => {
   };
 
   const renderRequest = ({ item }) => {
-    console.log('Rendering request:', item.id); 
     return (
       <TouchableOpacity
         style={styles.requestCard}
         onPress={() => {
-          console.log('Request clicked:', item.id);
         }}
       >
         <View style={styles.requestContent}>

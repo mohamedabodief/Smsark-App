@@ -23,8 +23,6 @@ export default function DetailsForDevelopment() {
   const route = useRoute();
   const navigation = useNavigation();
   const { id } = route.params;  // ✅ استخدمنا item فقط
-  // console.log("📌 Received id:", id);
-
   const [clientAds, setClientAds] = useState(null);
   const [mainImage, setMainImage] = useState('');
   const [loading, setLoading] = useState(true);

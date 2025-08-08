@@ -24,25 +24,20 @@ const DetailsForClient = () => {
   useEffect(() => {
     const fetchAd = async () => {
       if (!adId) {
-        console.error('ClientDetails: Invalid or missing adId');
         setError('معرف الإعلان غير صالح');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('ClientDetails: Fetching advertisement with id:', adId);
         const result = await ClientAdvertisement.getById(adId);
         if (!result) {
-          console.error('ClientDetails: No advertisement found for id:', adId);
           setError('لم يتم العثور على الإعلان');
           setLoading(false);
           return;
         }
-        console.log('ClientDetails: Advertisement data:', JSON.stringify(result, null, 2));
         setAd(result);
       } catch (error) {
-        console.error('ClientDetails: Error getting advertisement by ID:', error.message || error);
         setError('فشل في جلب تفاصيل الإعلان: ' + (error.message || 'خطأ غير معروف'));
       } finally {
         setLoading(false);
@@ -54,25 +49,21 @@ const DetailsForClient = () => {
 
   const openWhatsApp = () => {
     if (!ad?.phone) {
-      console.warn('ClientDetails: No phone number available for WhatsApp');
       return;
     }
     const message = `مرحبًا، أنا مهتم بإعلان: ${ad.title || 'إعلان عقاري'}`;
     const url = `whatsapp://send?phone=${ad.phone}&text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch((err) => {
-      console.error('Error opening WhatsApp:', err);
       setError('فشل في فتح واتساب، تأكد من وجود التطبيق');
     });
   };
 
   const makeCall = () => {
     if (!ad?.phone) {
-      console.warn('ClientDetails: No phone number available for call');
       return;
     }
     const url = `tel:${ad.phone}`;
     Linking.openURL(url).catch((err) => {
-      console.error('Error making call:', err);
       setError('فشل في إجراء المكالمة');
     });
   };

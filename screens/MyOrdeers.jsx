@@ -24,21 +24,17 @@ const MyOrders = ({ navigation }) => {
     }
 
     try {
-      console.log('Subscribing to FinancingRequests for user:', currentUserId);
       unsubscribe = FinancingRequest.subscribeByUser(currentUserId, (fetchedRequests) => {
-        console.log('Fetched requests:', fetchedRequests);
         setRequests(fetchedRequests);
         setLoading(false);
       });
     } catch (err) {
-      console.error('Error subscribing to requests:', err.message);
       setError('حدث خطأ أثناء جلب الطلبات');
       setLoading(false);
     }
 
     return () => {
       if (unsubscribe) {
-        console.log('Unsubscribing from FinancingRequests');
         unsubscribe();
       }
     };
@@ -121,7 +117,6 @@ const MyOrders = ({ navigation }) => {
               Alert.alert('نجاح', 'تم حذف الطلب بنجاح');
               setRequests((prevRequests) => prevRequests.filter((req) => req.id !== requestId));
             } catch (error) {
-              console.error('Error deleting request:', error.message);
               Alert.alert('خطأ', `حدث خطأ أثناء حذف الطلب: ${error.message}`);
             }
           },
@@ -131,13 +126,11 @@ const MyOrders = ({ navigation }) => {
   };
 
   const renderRequest = ({ item }) => {
-    console.log('Rendering request:', item.id);
     return (
       <TouchableOpacity
         key={item.id}
         style={styles.requestCard}
         onPress={() => {
-          console.log('Request clicked:', item.id);
         }}
       >
         <View style={styles.requestContent}>

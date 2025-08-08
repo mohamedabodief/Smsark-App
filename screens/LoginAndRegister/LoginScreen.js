@@ -22,10 +22,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
+  const [isPassVisable, setIsPassVisable] = useState(false);
+  const togglePasswordVisibility = () => {
+    setIsPassVisable(!isPassVisable)
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
-      console.log('LoginScreen: Email or password missing');
       Toast.show({
         type: 'error',
         text1: 'خطأ',
@@ -37,15 +40,12 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    console.log('LoginScreen: Attempting login with email:', email);
     const result = await loginWithEmailAndPassword(email, password);
     setLoading(false);
 
     if (result.success) {
-      console.log('LoginScreen: Login successful, user:', result.user.uid);
       try {
         await login(result.user);
-        console.log('LoginScreen: AuthContext login called');
         Toast.show({
           type: 'success',
           text1: 'نجاح',
@@ -53,8 +53,6 @@ export default function LoginScreen() {
           position: 'top',
           visibilityTime: 4000,
         });
-        console.log('LoginScreen: Navigation object available:', !!navigation);
-        console.log('LoginScreen: Navigating to MainApp with user:', result.user.uid);
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -67,7 +65,6 @@ export default function LoginScreen() {
           })
         );
       } catch (error) {
-        console.error('LoginScreen: Error during login or navigation:', error);
         Toast.show({
           type: 'error',
           text1: 'خطأ',
@@ -77,7 +74,6 @@ export default function LoginScreen() {
         });
       }
     } else {
-      console.log('LoginScreen: Login failed, error:', result.error);
       Toast.show({
         type: 'error',
         text1: 'خطأ',
@@ -118,12 +114,19 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>كلمة المرور</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={24} color="#5A00D6" style={styles.icon} />
+              <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+                <Ionicons
+                  name={isPassVisable ? 'eye-outline' : 'eye-off-outline'}
+                  size={24}
+                  color="#6E00FE"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
               <TextInput
                 placeholder="أدخل كلمة المرور"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!isPassVisable}
                 style={styles.input}
               />
             </View>
@@ -251,5 +254,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 10,
     marginRight: -10,
+  },
+  iconContainer: {
+    padding: 5,
   },
 });

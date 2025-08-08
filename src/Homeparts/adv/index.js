@@ -15,29 +15,23 @@ export default function Advertise() {
   useEffect(() => {
     const fetchUserType = async () => {
       if (!user || !user.uid) {
-        console.log('Advertise: No user logged in');
         setUserType(null);
         return;
       }
 
       try {
-        console.log('Advertise: Fetching user data for UID:', user.uid);
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          console.log('Advertise: User data fetched:', userData);
           setUserType(userData.type_of_user);
           if (userData.type_of_user === 'organization') {
             setOrganizationType(userData.type_of_organization || null);
-            console.log('Advertise: Organization type:', userData.type_of_organization);
           }
         } else {
-          console.log('Advertise: User document does not exist');
           setUserType(null);
         }
       } catch (error) {
-        console.error('Advertise: Error fetching user data:', error);
         setUserType(null);
       }
     };
@@ -70,8 +64,7 @@ export default function Advertise() {
   ];
 
   const handleNavigate = (item) => {
-    console.log('Advertise: handleNavigate called with item:', item, 'userType:', userType, 'organizationType:', organizationType);
-
+  
     if (!user || !userType) {
       Alert.alert('تنبيه', 'يرجى تسجيل الدخول أولاً', [
         { text: 'موافق', onPress: () => navigation.navigate('Login') },
@@ -80,39 +73,32 @@ export default function Advertise() {
     }
 
     if (userType === 'admin') {
-      console.log('Advertise: Admin access, navigating to:', item.route);
       navigation.navigate(item.route);
       return;
     }
 
     if (userType === 'organization') {
       if (item.type === 'client') {
-        console.log('Advertise: Organization tried to access client route, showing alert');
         Alert.alert('غير مصرح', 'غير مصرح لك بالدخول سجل كعميل حتى تتمكن من الدخول ');
         return;
       }
       if (['ممول عقاري', 'ممول عقارى'].includes(organizationType) && item.type === 'financer') {
-        console.log('Advertise: Organization (financer) access, navigating to AddFinancingAds');
         navigation.navigate('AddFinancingAds');
         return;
       } else if (['مطور عقاري', 'مطور عقارى'].includes(organizationType) && item.type === 'developer') {
-        console.log('Advertise: Organization (developer) access, navigating to AddDeveloperAds');
         navigation.navigate('AddDeveloperAds');
         return;
       } else {
         const alertMessage = item.type === 'developer' ? 'غير مصرح لك بالدخول سجل كمطور حتى تتمكن من الدخول' : 'غير مصرح لك بالدخول سجل كممول حتى تتمكن من الدخول';
-        console.log('Advertise: Unauthorized organization access, showing alert:', alertMessage);
         Alert.alert('غير مصرح', alertMessage);
         return;
       }
     }
 
     if (userType === item.type) {
-      console.log('Advertise: User type matches, navigating to:', item.route);
       navigation.navigate(item.route);
     } else {
       const alertMessage = item.type === 'developer' ? 'غير مسموح لك بالدخول سجل كمطور حتى تتمكن من الدخول' : 'غير مسموح لك بالدخول سجل كممول حتى تتمكن من الدخول';
-      console.log('Advertise: Unauthorized user type, showing alert:', alertMessage);
       Alert.alert('غير مصرح', alertMessage);
     }
   };

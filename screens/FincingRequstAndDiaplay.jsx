@@ -29,7 +29,6 @@ import React, { useState } from 'react';
       const [error, setError] = useState(null);
 
       const handleChange = (key, value) => {
-        console.log(`Updating ${key}: ${value}`);
         setForm({ ...form, [key]: value });
       };
 
@@ -47,7 +46,6 @@ import React, { useState } from 'react';
         });
 
         if (!result.canceled && result.assets) {
-          console.log('Selected images:', result.assets);
           setImages([...images, ...result.assets]);
         }
       };
@@ -96,12 +94,6 @@ import React, { useState } from 'react';
           }
         }
 
-        console.log('Navigating to DisplayInfoAddFinancingAds with data:', {
-          formData: form,
-          images,
-          userId: auth.currentUser.uid,
-        });
-
         setError(null);
         try {
           navigation.navigate('FormStack', {
@@ -109,7 +101,6 @@ import React, { useState } from 'react';
             params: { formData: form, images, userId: auth.currentUser.uid },
           });
         } catch (error) {
-          console.error('Navigation error:', error);
           Alert.alert('خطأ', 'حدث خطأ أثناء التنقل إلى صفحة المراجعة');
         }
       };

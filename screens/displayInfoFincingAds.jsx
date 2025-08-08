@@ -21,12 +21,8 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Financing+Image';
 
   useEffect(() => {
-    console.log('DisplayInfoAddFinancingAds: Rendering with userId:', userId);
-    console.log('Form Data:', formData);
-    console.log('Images:', images);
 
     if (!formData) {
-      console.log('No formData, showing Alert and navigating back');
       Alert.alert('خطأ', 'لم يتم العثور على بيانات الإعلان', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
       ]);
@@ -34,7 +30,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     }
 
     if (!userId) {
-      console.log('No userId, showing Alert and navigating to Login');
       Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً', [
         { text: 'حسناً', onPress: () => navigation.navigate('Login') },
       ]);
@@ -42,7 +37,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     }
 
     if (!formData.title && !formData.description && !images?.length) {
-      console.log('No valid data or images, showing Alert and navigating back');
       Alert.alert('خطأ', 'البيانات أو الصورة غير متوفرة', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
       ]);
@@ -51,7 +45,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
   const handleSubmit = async () => {
     if (!userId) {
-      console.log('No userId, showing Alert and navigating to Login');
       Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً');
       navigation.navigate('Login');
       return;
@@ -59,7 +52,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-      console.log('Starting handleSubmit with userId:', userId);
 
       // تحديث نوع المستخدم في Firestore
       await setDoc(
@@ -70,7 +62,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         },
         { merge: true }
       );
-      console.log('User type updated to organization for UID:', userId);
+
 
       // تحويل الصور إلى كائنات File
       let imageFiles = [];
@@ -78,7 +70,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         imageFiles = await Promise.all(
           images.map(async (image, index) => {
             try {
-              console.log('Fetching image URI:', image.uri);
               const response = await fetch(image.uri);
               if (!response.ok) {
                 throw new Error(`Failed to fetch image: ${image.uri}`);
@@ -86,18 +77,15 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
               const blob = await response.blob();
               return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
             } catch (error) {
-              console.error('Error converting image:', error);
               return null;
             }
           })
         ).then(files => files.filter(file => file !== null));
       }
       if (imageFiles.length === 0) {
-        console.log('No valid images, using default image');
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
-      console.log('Image Files (sent to Firestore):', imageFiles);
 
       // إعداد بيانات الإعلان
       const adData = {
@@ -121,28 +109,17 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         adPackage: null,
       };
 
-      console.log('Ad Data prepared:', adData);
-
-      console.log('Creating FinancingAdvertisement instance');
       const financingAd = new FinancingAdvertisement(adData);
-      console.log('Calling save method with imageFiles:', imageFiles);
       const docId = await financingAd.save(imageFiles);
-        //  navigation.navigate('MyAds');
-      console.log('Advertisement saved with docId:', docId);
-
-      console.log('Showing success Alert, will navigate to MyAds');
     Alert.alert(
                  'نجح الإرسال',
                  'تم رفع إعلانك وهو الآن قيد المراجعة',
                  [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
                );
     } catch (error) {
-      console.error('Error saving financing ad:', error);
-      console.log('Showing error Alert');
       Alert.alert('خطأ', `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
     } finally {
       setLoading(false);
-      console.log('handleSubmit completed, loading set to false');
     }
   };
 

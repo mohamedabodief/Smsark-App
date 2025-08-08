@@ -10,18 +10,14 @@ import FooterNav from '../componenents/Footer';
 async function saveToken(key, value) {
   try {
     await SecureStore.setItemAsync(key, value);
-    console.log('Token saved successfully:', key);
   } catch (error) {
-    console.error('Error saving token:', error);
   }
 }
 async function getToken(key) {
   try {
     const token = await SecureStore.getItemAsync(key);
-    console.log('Token retrieved:', token ? 'exists' : 'null');
     return token;
   } catch (error) {
-    console.error('Error retrieving token:', error);
     return null;
   }
 }
@@ -33,33 +29,25 @@ export default function Layout({ children, showDrawer = false }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Layout useEffect triggered for route:', route.name);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsLoading(false);
       if (user) {
-        console.log('User authenticated:', user.uid);
         await saveToken('userToken', user.accessToken);
         setIsAuthenticated(true);
         if (['SignIn', 'Login'].includes(route.name)) {
-          console.log('Navigating to Home from:', route.name);
           navigation.navigate('Home');
         }
       } else {
-        console.log('No user found, checking stored token');
         const token = await getToken('userToken');
         if (token) {
-          console.log('Valid token found, setting authenticated');
           setIsAuthenticated(true);
           // لا تنتقل إلى Home إذا كانت الشاشة الحالية ليست SignIn أو Login
           if (['SignIn', 'Login'].includes(route.name)) {
-            console.log('Navigating to Home from:', route.name);
             navigation.navigate('Home');
           }
         } else {
-          console.log('No user or token, navigating to SignIn');
           setIsAuthenticated(false);
           if (!['SignIn', 'Login'].includes(route.name)) {
-            console.log('Navigating to SignIn from:', route.name);
             navigation.navigate('SignIn');
           }
         }
@@ -67,7 +55,6 @@ export default function Layout({ children, showDrawer = false }) {
     });
 
     return () => {
-      console.log('Cleaning up onAuthStateChanged for route:', route.name);
       unsubscribe();
     };
   }, [navigation, route]);

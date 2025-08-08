@@ -21,38 +21,31 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Developer+Image';
 
   useEffect(() => {
-    console.log('DisplayInfoAddDeveloperAds: Rendering with userId:', userId);
-    console.log('Form Data:', formData);
-    console.log('Images:', images);
+ 
 
     if (!formData) {
-      console.log('No formData, navigating back');
       navigation.goBack();
       return;
     }
 
     if (!userId) {
-      console.log('No userId, navigating to Login');
       navigation.navigate('Login');
       return;
     }
 
     if (!formData.developer_name && !formData.description && !images?.length) {
-      console.log('No valid data or images, navigating back');
       navigation.goBack();
     }
   }, [formData, images, userId, navigation]);
 
   const handleSubmit = async () => {
     if (!userId) {
-      console.log('No userId, navigating to Login');
       navigation.navigate('Login');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('Starting handleSubmit with userId:', userId);
       await setDoc(
         doc(db, 'users', userId),
         {
@@ -67,7 +60,6 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
         imageFiles = await Promise.all(
           images.map(async (image, index) => {
             try {
-              console.log('Fetching image URI:', image.uri);
               const response = await fetch(image.uri);
               if (!response.ok) {
                 throw new Error(`Failed to fetch image: ${image.uri}`);
@@ -75,7 +67,7 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
               const blob = await response.blob();
               return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
             } catch (error) {
-              console.error('Error converting image:', error);
+           
               return null;
             }
           })
@@ -83,11 +75,9 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
       }
 
       if (imageFiles.length === 0) {
-        console.log('No valid images, using default image');
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
-      console.log('Image Files before save:', imageFiles);
 
       // توافق الحقول مع RealEstateDeveloperAdvertisement
       const adData = {
@@ -119,10 +109,7 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
         adPackage: null,
         images: imageFiles.map(file => typeof file === 'string' ? file : file.name || DEFAULT_IMAGE_URL),
       };
-
-      console.log('Ad Data prepared:', adData);
       const developerAd = new RealEstateDeveloperAdvertisement(adData);
-      console.log('Calling save with imageFiles:', imageFiles);
       const docId = await developerAd.save(imageFiles);
     Alert.alert(
               'نجح الإرسال',
@@ -130,12 +117,9 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
               [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
             );
     } catch (error) {
-      console.error('Error saving developer ad:', error);
-      console.log('Navigation to MyAds after error');
       navigation.navigate('MyAds');
     } finally {
       setLoading(false);
-      console.log('handleSubmit completed, loading set to false');
     }
   };
 

@@ -59,13 +59,11 @@ const AddAdvDev = () => {
       setError(null);
 
       if (isEditMode) {
-        console.log('🔄 تعديل:', data);
         setSuccess(true);
         setTimeout(() => {
           navigation.navigate('DetailsForDevelopment', { id: editData.id });
         }, 1500);
       } else {
-        console.log('➕ إضافة:', data);
         setSuccess(true);
         setTimeout(() => {
           navigation.navigate('DetailsForDevelopment', { id: 'new-id' });

@@ -27,10 +27,6 @@ const FavoriteButton = ({ advertisementId }) => {
       alert('يرجى تسجيل الدخول أولاً');
       return;
     }
-    // console.log('Toggle favorite for ad:', advertisementId);
-    // console.log("Current favorites list:", favorites);
-    // console.log("Is favorite:", isFavorite);
-
     dispatch(toggleFavoriteAsync({ userId, advertisementId }));
   }
   return (

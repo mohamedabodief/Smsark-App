@@ -11,7 +11,7 @@ const clientData = new ClientUserData({
 });
 
 const clientUser = User.fromClientData(clientData); // ✅ User جاهز
-console.log(clientUser);
+
 
 const orgData = new OrganizationUserData({
   uid: "<user_uid_from_auth>",

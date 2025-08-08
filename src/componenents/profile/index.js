@@ -12,11 +12,9 @@ const ProfileScreen = () => {
       try {
         const currentUserUid = auth.currentUser?.uid;
         if (!currentUserUid) return;
-        // console.log("✅ Current User UID:", currentUserUid);
         const user = await User.getByUid(currentUserUid);
         setUserData(user);
       } catch (err) {
-        console.error('❌ Error fetching user data:', err.message);
       } finally {
         setLoading(false);
       }

@@ -47,23 +47,69 @@ export default class ClientAdvertisement {
     this.username = data.username || '';
     this.address = data.address || '';
     this.building_date = data.building_date || '';
+    this.adPackage = data.adPackage || ''; // حقل الباقة الجديد
+    this.receiptUrl = data.receiptUrl || ''; // رابط صورة الإيصال
   }
 
   get id() {
     return this.#id;
   }
 
-  async save(imageFiles = []) {
+  async save(imageFiles = [], receiptFile) {
     try {
+      // التحقق من الحقول الإلزامية
+      const requiredFields = {
+        title: this.title,
+        description: this.description,
+        price: this.price,
+        location: this.location,
+        governorate: this.governorate,
+        city: this.city,
+        space: this.space,
+        userId: this.userId,
+        type: this.type,
+        ad_type: this.ad_type,
+        phone: this.phone,
+        username: this.username,
+        address: this.address,
+        building_date: this.building_date,
+        adPackage: this.adPackage,
+      };
+
+      for (const [field, value] of Object.entries(requiredFields)) {
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          throw new Error(`حقل ${field} مطلوب`);
+        }
+      }
+
+      // التحقق من قيمة adPackage
+      const validPackages = ['1', '2', '3'];
+      if (!validPackages.includes(this.adPackage)) {
+        throw new Error('الباقة غير صالحة. اختر: الأساس (1)، النخبة (2)، التميز (3)');
+      }
+
+      // التحقق من وجود صورة إيصال
+      if (!receiptFile) {
+        throw new Error('صورة الإيصال مطلوبة');
+      }
+
       const docRef = doc(db, 'ClientAdvertisements', this.#id || doc(collection(db, 'ClientAdvertisements')).id);
       this.#id = docRef.id;
       await setDoc(docRef, this.#getAdData());
 
+      // رفع الصور إلى Firebase Storage
       if (imageFiles.length > 0) {
         const imageUrls = await this.#uploadImages(imageFiles);
         this.images = imageUrls;
         await updateDoc(docRef, { images: imageUrls });
       }
+
+      // رفع صورة الإيصال إلى Firebase Storage
+      const receiptStorageRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      await uploadBytes(receiptStorageRef, receiptFile);
+      const receiptUrl = await getDownloadURL(receiptStorageRef);
+      this.receiptUrl = receiptUrl;
+      await updateDoc(docRef, { receiptUrl });
 
       return this.#id;
     } catch (error) {
@@ -72,25 +118,48 @@ export default class ClientAdvertisement {
     }
   }
 
-  async update(updates = {}, newImageFiles = []) {
+  async update(updates = {}, newImageFiles = [], newReceiptFile) {
     if (!this.#id) throw new Error('الإعلان بدون ID صالح للتحديث');
     const docRef = doc(db, 'ClientAdvertisements', this.#id);
 
+    // تحديث الحقول
+    const updatedData = { ...this.#getAdData(), ...updates };
+
+    // التحقق من adPackage إذا تم تحديثه
+    if (updates.adPackage) {
+      const validPackages = ['1', '2', '3'];
+      if (!validPackages.includes(updates.adPackage)) {
+        throw new Error('الباقة غير صالحة. اختر: الأساس (1)، النخبة (2)، التميز (3)');
+      }
+    }
+
+    // تحديث الصور إذا تم تقديم صور جديدة
     if (newImageFiles.length > 0) {
       await this.#deleteAllImages();
       const newUrls = await this.#uploadImages(newImageFiles);
-      updates.images = newUrls;
+      updatedData.images = newUrls;
       this.images = newUrls;
     } else if (typeof updates.images === 'undefined') {
-      updates.images = this.images;
+      updatedData.images = this.images;
     }
 
-    await updateDoc(docRef, updates);
+    // تحديث صورة الإيصال إذا تم تقديم صورة جديدة
+    if (newReceiptFile) {
+      await this.#deleteReceipt();
+      const receiptStorageRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      await uploadBytes(receiptStorageRef, newReceiptFile);
+      const receiptUrl = await getDownloadURL(receiptStorageRef);
+      updatedData.receiptUrl = receiptUrl;
+      this.receiptUrl = receiptUrl;
+    }
+
+    await updateDoc(docRef, updatedData);
   }
 
   async delete() {
     if (!this.#id) throw new Error('الإعلان بدون ID');
     await this.#deleteAllImages();
+    await this.#deleteReceipt();
     await deleteDoc(doc(db, 'ClientAdvertisements', this.#id));
   }
 
@@ -184,9 +253,24 @@ export default class ClientAdvertisement {
     const dirRef = ref(storage, `client_ads/${this.userId}/${this.#id}`);
     try {
       const list = await listAll(dirRef);
-      for (const fileRef of list.items) await deleteObject(fileRef);
+      for (const fileRef of list.items) {
+        if (!fileRef.name.includes('receipt.jpg')) {
+          await deleteObject(fileRef);
+        }
+      }
     } catch (error) {
       console.error('Error deleting images:', error);
+    }
+  }
+
+  async #deleteReceipt() {
+    if (this.receiptUrl) {
+      const receiptRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      try {
+        await deleteObject(receiptRef);
+      } catch (error) {
+        console.error('Error deleting receipt:', error);
+      }
     }
   }
 
@@ -215,6 +299,8 @@ export default class ClientAdvertisement {
       username: this.username,
       address: this.address,
       building_date: this.building_date,
+      adPackage: this.adPackage,
+      receiptUrl: this.receiptUrl,
     };
   }
 }

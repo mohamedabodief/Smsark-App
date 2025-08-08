@@ -67,7 +67,7 @@ class RealEstateDeveloperAdvertisement {
 
   // ✅ إنشاء إعلان جديد + رفع الصور + إيصال الدفع
   async save(imagesFiles = [], receiptFile = null) {
-    console.log('Saving advertisement for user:', this.userId || 'unknown');
+
     
     const colRef = collection(db, 'RealEstateDeveloperAdvertisements');
     const docRef = await addDoc(colRef, this.#getAdData());

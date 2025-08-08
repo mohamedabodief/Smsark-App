@@ -8,14 +8,9 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
   const { logout, user } = useContext(AuthContext);
   const userId = user && user.uid ? user.uid : 'guest';
   const { colors } = useTheme();
-
-  console.log('DrawerContent: Rendering with userId:', userId);
-
   const handleLogout = async () => {
     try {
-      console.log('DrawerContent: Attempting to sign out');
       await logout();
-      console.log('DrawerContent: Logout successful, navigating to Login');
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -23,18 +18,15 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
         })
       );
     } catch (error) {
-      console.error('DrawerContent: Logout failed:', error);
       Alert.alert('خطأ', 'فشل تسجيل الخروج. حاولي مرة أخرى.');
     }
   };
 
   const handleNavigate = (route, params) => {
     try {
-      console.log('DrawerContent: Navigating to', route, params || '');
       navigation.navigate(route, params);
       navigation.closeDrawer();
     } catch (error) {
-      console.error('DrawerContent: Navigation failed:', error);
       Alert.alert('خطأ', `فشل التنقل إلى ${route}.`);
     }
   };
@@ -52,11 +44,6 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
           <Drawer.Item
             label="الصفحة الرئيسية"
             onPress={() => handleNavigate('MainStack', { screen: 'Home' })}
-            {...drawerItemProps}
-          />
-          <Drawer.Item
-            label="إضافة عقار"
-            onPress={() => handleNavigate('AddClientAds')}
             {...drawerItemProps}
           />
           <Drawer.Item
@@ -101,7 +88,7 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
             label="تسجيل الخروج"
             icon="logout"
             onPress={handleLogout}
-            {...drawerItemProps}
+      
           />
         </Drawer.Section>
       </ScrollView>

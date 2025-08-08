@@ -20,9 +20,6 @@ export default function OrganizationDetailsScreen({ route }) {
   const { user } = useContext(AuthContext);
   const navigation = useNavigation();
   const uid = route.params?.uid || (user && user.uid) || 'guest';
-
-  console.log('OrganizationDetailsScreen: Rendering with uid:', uid);
-
   const [org_name, setOrgName] = useState('');
   const [phone, setPhoneNumber] = useState('');
   const [type_of_organization, setType] = useState('');
@@ -102,14 +99,11 @@ export default function OrganizationDetailsScreen({ route }) {
       });
 
       await userData.saveToFirestore();
-      console.log('OrganizationDetailsScreen: User data saved successfully');
       await signOut(auth);
-      console.log('OrganizationDetailsScreen: User signed out successfully');
       Alert.alert('تم', 'تم حفظ البيانات بنجاح', [
         {
           text: 'موافق',
           onPress: () => {
-            console.log('OrganizationDetailsScreen: Navigating to Login');
             navigation.dispatch(
               CommonActions.reset({
                 index: 0,
@@ -120,18 +114,14 @@ export default function OrganizationDetailsScreen({ route }) {
         },
       ]);
     } catch (err) {
-      console.error('OrganizationDetailsScreen: Error saving data:', err);
       Alert.alert('خطأ', err.message);
     }
   };
 
   const handleBack = () => {
-    console.log('OrganizationDetailsScreen: Attempting to go back');
     if (navigation.canGoBack()) {
-      console.log('OrganizationDetailsScreen: Going back to previous screen');
       navigation.goBack();
     } else {
-      console.log('OrganizationDetailsScreen: No previous screen, navigating to Login');
       navigation.dispatch(
         CommonActions.reset({
           index: 0,

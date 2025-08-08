@@ -63,7 +63,6 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
   }
 
   render() {
@@ -81,9 +80,6 @@ class ErrorBoundary extends React.Component {
 function FormStackNavigator() {
   const { user } = useContext(AuthContext);
   const userId = user && user.uid ? user.uid : 'guest';
-
-  console.log('FormStackNavigator: Rendering with userId:', userId);
-
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
@@ -133,9 +129,6 @@ function FormStackNavigator() {
 function MainStackNavigator() {
   const { user } = useContext(AuthContext);
   const userId = user && user.uid ? user.uid : 'guest';
-
-  console.log('MainStackNavigator: Rendering with userId:', userId);
-
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Home">
       <Stack.Screen name="Home" component={Home} />
@@ -160,9 +153,6 @@ function AppDrawer({ toggleMode }) {
   const { user } = useContext(AuthContext);
   const userId = user && user.uid ? user.uid : 'guest';
   const dispatch = useDispatch();
-
-  console.log('AppDrawer: Rendering with userId:', userId);
-
   return (
     <Drawer.Navigator
       initialRouteName="MainStack"
@@ -254,13 +244,8 @@ function AppContent({ toggleMode }) {
   const { user, loading } = useContext(AuthContext);
   const navigation = useNavigation(); 
   const hasNavigated = useRef(false);
-
-  console.log('AppContent: Rendering with loading:', loading, 'user:', user ? user.uid : 'none');
-
   useEffect(() => {
-    console.log('AppContent: useEffect - loading:', loading, 'hasNavigated:', hasNavigated.current);
     if (loading || hasNavigated.current) {
-      console.log('AppContent: Skipping navigation');
       return;
     }
 
@@ -269,7 +254,6 @@ function AppContent({ toggleMode }) {
         if (!loading && !hasNavigated.current) {
           hasNavigated.current = true;
           const routeName = user && user.uid ? 'MainApp' : 'Login';
-          console.log('AppContent: Navigating to:', routeName);
           navigation.dispatch(
             CommonActions.reset({
               index: 0,
@@ -288,7 +272,6 @@ function AppContent({ toggleMode }) {
     navigateAfterSplash();
 
     return () => {
-      console.log('AppContent: Cleaning up useEffect');
     };
   }, [loading, user, navigation]);
 
