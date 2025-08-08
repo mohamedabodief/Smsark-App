@@ -16,9 +16,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import * as ImagePicker from 'expo-image-picker';
-import { Picker } from '@react-native-picker/picker';
 import Layout from '../src/Layout';
 import { auth } from '../FireBase/firebaseConfig';
+import { Picker } from '@react-native-picker/picker';
 
 // تحديث schema التحقق لتشمل adPackage
 const validationSchema = yup.object().shape({
@@ -138,6 +138,7 @@ const AddAds = ({ navigation }) => {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
@@ -297,6 +298,7 @@ const AddAds = ({ navigation }) => {
                       selectedValue={field.value}
                       onValueChange={field.onChange}
                       style={styles.picker}
+                      itemStyle={{textAlign:'right',marginLeft:'auto',color:'red'}}
                     >
                       <Picker.Item label="اختر نوع العقار" value="" enabled={false} />
                       {propertyTypes.map((type) => (
@@ -556,6 +558,7 @@ const AddAds = ({ navigation }) => {
                         selectedValue={field.value}
                         onValueChange={field.onChange}
                         style={styles.picker}
+                        itemStyle={styles.pickerItem}
                       >
                         <Picker.Item label="اختر حالة الإعلان" value="" enabled={false} />
                         {adStatuses.map((status) => (
@@ -593,65 +596,69 @@ const AddAds = ({ navigation }) => {
               )}
             />
           </View>
-    <View style={styles.section}>
+
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>📦 اختيار الباقة</Text>
-            <Controller
-              name="adPackage"
-              control={control}
-              render={({ field }) => (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>الباقة</Text>
-                  <View style={[styles.pickerContainer, errors.adPackage && styles.inputError]}>
-                    <Picker
-                      selectedValue={field.value}
-                      onValueChange={field.onChange}
-                      style={styles.picker}
-                    >
-                      <Picker.Item label="اختر الباقة" value="" enabled={false} />
-                      {Object.entries(packages).map(([value, pkg]) => (
-                        <Picker.Item key={value} label={pkg.label} value={value} />
-                      ))}
-                    </Picker>
-                  </View>
-                  {errors.adPackage && <Text style={styles.errorText}>{errors.adPackage.message}</Text>}
-                </View>
-              )}
-            />
-            {selectedPackage && packages[selectedPackage] && (
-              <View style={styles.packageDetailsContainer}>
-                <Text style={styles.sectionSubtitle}>تفاصيل الباقة</Text>
-                <View style={styles.packageDetails}>
-                  <Text style={styles.packageDetailText}>الاسم: {packages[selectedPackage].label}</Text>
-                  <Text style={styles.packageDetailText}>السعر: {packages[selectedPackage].price}</Text>
-                  <Text style={styles.packageDetailText}>المدة: {packages[selectedPackage].duration}</Text>
-                </View>
+            <View style={styles.packageContainer}>
+              {Object.keys(packages).map((key) => (
                 <TouchableOpacity
-                  style={[styles.uploadButton, receipt && styles.disabledButton]}
-                  onPress={handleReceiptUpload}
-                  disabled={uploading }
+                  key={key}
+                  style={[
+                    styles.packageOption,
+                    selectedPackage === key && styles.packageOptionSelected,
+                  ]}
+                  onPress={() => setValue('adPackage', key)}
                 >
-                  <Text style={styles.uploadButtonText}>📄 رفع صورة الإيصال</Text>
+                  <Text style={styles.packageText}>
+                    {packages[key].label} - {packages[key].price} ({packages[key].duration})
+                  </Text>
                 </TouchableOpacity>
-                {receiptError && <Text style={styles.errorText}>{receiptError}</Text>}
-                {receipt && (
-                  <View style={styles.imagePreviewContainer}>
-                    <View style={styles.imagePreview}>
-                      <Image source={{ uri: receipt.uri }} style={styles.image} />
-                      <TouchableOpacity
-                        style={styles.removeImageButton}
-                        onPress={removeReceipt}
-                      >
-                        <Text style={styles.removeImageText}>✖</Text>
-                      </TouchableOpacity>
-                    </View>
+              ))}
+            </View>
+            {errors.adPackage && <Text style={styles.errorText}>{errors.adPackage.message}</Text>}
+            {selectedPackage && packages[selectedPackage] && (
+              <View style={styles.packageDetails}>
+                <Text style={styles.packageDetailsTitle}>تفاصيل الباقة المختارة</Text>
+                <View style={styles.packageDetailsContent}>
+                  <Text style={styles.packageDetailsText}>
+                    الاسم: {packages[selectedPackage].label}
+                  </Text>
+                  <Text style={styles.packageDetailsText}>
+                    السعر: {packages[selectedPackage].price}
+                  </Text>
+                  <Text style={styles.packageDetailsText}>
+                    المدة: {packages[selectedPackage].duration}
+                  </Text>
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptTitle}>🧾 صورة الإيصال</Text>
+                    <TouchableOpacity
+                      style={[styles.uploadButton, receipt && styles.disabledButton]}
+                      onPress={handleReceiptUpload}
+                      disabled={uploading}
+                    >
+                      <Text style={styles.uploadButtonText}>📄 رفع صورة الإيصال</Text>
+                    </TouchableOpacity>
+                    {receiptError && <Text style={styles.errorText}>{receiptError}</Text>}
+                    {receipt && (
+                      <View style={styles.imagePreview}>
+                        <Image source={{ uri: receipt.uri }} style={styles.image} />
+                        <TouchableOpacity
+                          style={styles.removeImageButton}
+                          onPress={removeReceipt}
+                        >
+                          <Text style={styles.removeImageText}>✖</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    {receipt && (
+                      <Text style={styles.imageCount}>تم إضافة صورة الإيصال</Text>
+                    )}
                   </View>
-                )}
-                {receipt && (
-                  <Text style={styles.imageCount}>تم إضافة صورة الإيصال</Text>
-                )}
+                </View>
               </View>
             )}
           </View>
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.submitButton, uploading && { opacity: 0.6 }]}
@@ -727,15 +734,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'right',
   },
-  sectionSubtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#4D00B1',
-    marginBottom: 12,
-    textAlign: 'right',
-  },
   inputContainer: {
     marginBottom: 20,
+  },
+  pickerItem: {
+    textAlign: 'right', // محاذاة النص لليمين لكل عنصر
+    writingDirection: 'rtl', // اتجاه الكتابة RTL
+    fontSize: 16, // لضمان تناسق حجم الخط
+    color: '#e61111ff', // لون النص
   },
   label: {
     fontSize: 16,
@@ -777,28 +783,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e9ecef',
     borderRadius: 12,
-    overflow: 'hidden'
-    
+    overflow: 'hidden',
   },
   picker: {
     height: Platform.OS === 'ios' ? 150 : 60,
     width: '100%',
-  margin:'auto'  },
+    margin: 'auto',
+    alignItems:'center',
+    justifyContent:'center',
+    display:'flex',
+    textAlign:'center',
+position:'relative'
+  },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
-  
+    justifyContent: 'space-between',
   },
   halfWidth: {
     width: '48%',
   },
   uploadButton: {
-    backgroundColor: '#e3f2fd',
-    borderWidth: 2,
-    borderColor: '#2196f3',
-    borderStyle: 'dashed',
+    backgroundColor: '#4D00B1',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     marginBottom: 16,
   },
@@ -806,12 +813,12 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   uploadButtonText: {
-    color: '#2196f3',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   imagePreviewContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     marginTop: 8,
   },
@@ -819,13 +826,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 100,
     height: 100,
-    marginLeft: 8,
+    marginRight: 8,
     marginBottom: 8,
+      margin:'auto'
   },
   image: {
     width: '100%',
     height: '100%',
     borderRadius: 12,
+    margin:'auto'
   },
   removeImageButton: {
     position: 'absolute',
@@ -850,20 +859,66 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '500',
   },
-  packageDetailsContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f8f9fa',
+  packageContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  packageOption: {
+    borderWidth: 2,
+    borderColor: '#e1e5e9',
     borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    width: '100%',
+    backgroundColor: '#fff',
   },
-  packageDetails: {
-    marginBottom: 20,
+  packageOptionSelected: {
+    borderColor: '#4D00B1',
+    backgroundColor: '#e6d9ff',
   },
-  packageDetailText: {
+  packageText: {
     fontSize: 16,
     color: '#333',
     textAlign: 'right',
-    marginBottom: 8,
+    writingDirection: 'rtl',
+  },
+  packageDetails: {
+    marginTop: 20,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 2,
+    borderColor: '#4D00B1',
+  },
+  packageDetailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4D00B1',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetailsContent: {
+    alignItems: 'flex-end',
+  },
+  packageDetailsText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  receiptSection: {
+    marginTop: 15,
+    margin:'auto'
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 10,
+    writingDirection: 'rtl',
   },
   buttonContainer: {
     marginTop: 30,

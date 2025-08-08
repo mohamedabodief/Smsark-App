@@ -14,14 +14,19 @@ import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAd
 import { auth, db } from '../FireBase/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
+const PACKAGE_INFO = {
+  1: { name: 'باقة الأساس', price: 100, duration: 7 },
+  2: { name: 'باقة النخبة', price: 150, duration: 14 },
+  3: { name: 'باقة التميز', price: 200, duration: 21 },
+};
+
 const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
-  const { formData, images } = route.params || {};
+  const { formData, images, receiptImage } = route.params || {};
   const userId = auth.currentUser?.uid;
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Financing+Image';
 
   useEffect(() => {
-
     if (!formData) {
       Alert.alert('خطأ', 'لم يتم العثور على بيانات الإعلان', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
@@ -52,7 +57,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-
       // تحديث نوع المستخدم في Firestore
       await setDoc(
         doc(db, 'users', userId),
@@ -63,8 +67,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         { merge: true }
       );
 
-
-      // تحويل الصور إلى كائنات File
+      // تحويل صور الإعلان إلى كائنات File
       let imageFiles = [];
       if (images && images.length > 0) {
         imageFiles = await Promise.all(
@@ -86,6 +89,22 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
+      // تحويل صورة الإيصال إلى كائن File
+      let receiptFile = null;
+      if (receiptImage) {
+        try {
+          const response = await fetch(receiptImage.uri);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch receipt image: ${receiptImage.uri}`);
+          }
+          const blob = await response.blob();
+          receiptFile = new File([blob], 'receipt.jpg', { type: 'image/jpeg' });
+        } catch (error) {
+          Alert.alert('خطأ', `فشل في تحميل صورة الإيصال: ${error.message}`);
+          setLoading(false);
+          return;
+        }
+      }
 
       // إعداد بيانات الإعلان
       const adData = {
@@ -106,16 +125,16 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         receipt_image: null,
         reviewed_by: null,
         review_note: null,
-        adPackage: null,
+        adPackage: formData.adPackage || null,
       };
 
       const financingAd = new FinancingAdvertisement(adData);
-      const docId = await financingAd.save(imageFiles);
-    Alert.alert(
-                 'نجح الإرسال',
-                 'تم رفع إعلانك وهو الآن قيد المراجعة',
-                 [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
-               );
+      await financingAd.save(imageFiles, receiptFile);
+      Alert.alert(
+        'نجح الإرسال',
+        'تم رفع إعلانك وهو الآن قيد المراجعة',
+        [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+      );
     } catch (error) {
       Alert.alert('خطأ', `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
     } finally {
@@ -134,6 +153,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
       interest_rate_upto_5: 'فائدة حتى 5 سنوات (%)',
       interest_rate_upto_10: 'فائدة حتى 10 سنوات (%)',
       interest_rate_above_10: 'فائدة أكثر من 10 سنوات (%)',
+      adPackage: 'الباقة',
     };
     return labels[key] || key;
   };
@@ -162,7 +182,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
             <Text style={styles.errorText}>لا توجد بيانات إعلان لعرضها</Text>
           ) : (
             Object.entries(formData).map(([key, value]) => {
-              if (value === '' || value === null || value === undefined) {
+              if (value === '' || value === null || value === undefined || key === 'adPackage') {
                 return null;
               }
               if (key === 'description') {
@@ -180,6 +200,36 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
                 </View>
               );
             })
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📦 تفاصيل الباقة والإيصال</Text>
+          {formData.adPackage && PACKAGE_INFO[formData.adPackage] ? (
+            <View style={styles.packageDetails}>
+              <Text style={styles.packageDetailsTitle}>تفاصيل الباقة المختارة</Text>
+              <View style={styles.packageDetailsContent}>
+                <Text style={styles.packageDetailsText}>
+                  الاسم: {PACKAGE_INFO[formData.adPackage].name}
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  السعر: {PACKAGE_INFO[formData.adPackage].price} جنيه
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  المدة: {PACKAGE_INFO[formData.adPackage].duration} أيام
+                </Text>
+                {receiptImage && (
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptTitle}>🧾 صورة الإيصال</Text>
+                    <View style={styles.imageWrapper}>
+                      <Image source={{ uri: receiptImage.uri }} style={styles.imagePreview} />
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.errorText}>لم يتم اختيار باقة</Text>
           )}
         </View>
 
@@ -323,16 +373,56 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     writingDirection: 'rtl',
   },
+  packageDetails: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#4D00B1',
+  },
+  packageDetailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4D00B1',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetailsContent: {
+    alignItems: 'flex-end',
+  },
+  packageDetailsText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  receiptSection: {
+    marginTop: 15,
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 10,
+    writingDirection: 'rtl',
+  },
   imagePreviewContainer: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     marginBottom: 16,
   },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 8,
+    marginBottom: 8,
+  },
   imagePreview: {
     width: 100,
     height: 100,
-    marginRight: 8,
-    marginBottom: 8,
+    borderRadius: 8,
   },
   imageCount: {
     color: '#28a745',

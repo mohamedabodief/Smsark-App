@@ -15,8 +15,13 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
-import { RealEstateDeveloperAdvertisement } from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 import Layout from '../src/Layout';
+
+const PACKAGE_INFO = {
+  1: { name: 'باقة الأساس', price: 100, duration: 7 },
+  2: { name: 'باقة النخبة', price: 150, duration: 14 },
+  3: { name: 'باقة التميز', price: 200, duration: 21 },
+};
 
 const validationSchema = yup.object().shape({
   developer_name: yup.string().required('اسم المطور مطلوب'),
@@ -40,6 +45,8 @@ const validationSchema = yup.object().shape({
 
 const ModernDeveloperForm = ({ navigation, route }) => {
   const [images, setImages] = useState([]);
+  const [receiptImage, setReceiptImage] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   const {
     control,
@@ -74,10 +81,15 @@ const ModernDeveloperForm = ({ navigation, route }) => {
   const watchFurnished = watch('furnished');
   const watchNegotiable = watch('negotiable');
 
-  useEffect(() => {
-  }, [navigation, route]);
+  useEffect(() => {}, [navigation, route]);
 
   const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('الإذن مطلوب', 'يرجى منح الإذن للوصول إلى المعرض');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
@@ -90,25 +102,58 @@ const ModernDeveloperForm = ({ navigation, route }) => {
     }
   };
 
+  const pickReceiptImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('الإذن مطلوب', 'يرجى منح الإذن للوصول إلى المعرض');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets) {
+      setReceiptImage(result.assets[0]);
+    }
+  };
+
   const removeImage = (index) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const removeReceiptImage = () => {
+    setReceiptImage(null);
   };
 
   const handleReset = () => {
     reset();
     setImages([]);
+    setReceiptImage(null);
+    setSelectedPackage(null);
   };
 
   const onSubmit = (data) => {
+    if (!selectedPackage) {
+      Alert.alert('خطأ', 'من فضلك اختر باقة');
+      return;
+    }
+
+    if (!receiptImage) {
+      Alert.alert('خطأ', 'من فضلك ارفع صورة الإيصال');
+      return;
+    }
 
     if (navigation) {
       navigation.navigate('FormStack', {
-        screen:'DisplayInfoAddDeveloperAds',
-        params:{
-     formData: data,
-        images: images,
-        }
-   
+        screen: 'DisplayInfoAddDeveloperAds',
+        params: {
+          formData: { ...data, adPackage: selectedPackage },
+          images: images,
+          receiptImage: receiptImage,
+        },
       });
     } else {
       Alert.alert('خطأ', 'التنقل غير متوفر، يرجى التحقق من إعدادات التنقل');
@@ -530,6 +575,59 @@ const ModernDeveloperForm = ({ navigation, route }) => {
           </View>
 
           <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📦 اختيار الباقة</Text>
+            <View style={styles.packageContainer}>
+              {Object.keys(PACKAGE_INFO).map((key) => (
+                <TouchableOpacity
+                  key={key}
+                  style={[
+                    styles.packageOption,
+                    selectedPackage === key && styles.packageOptionSelected,
+                  ]}
+                  onPress={() => setSelectedPackage(key)}
+                >
+                  <Text style={styles.packageText}>
+                    {PACKAGE_INFO[key].name} - {PACKAGE_INFO[key].price} جنيه ({PACKAGE_INFO[key].duration} أيام)
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {selectedPackage && (
+              <View style={styles.packageDetails}>
+                <Text style={styles.packageDetailsTitle}>تفاصيل الباقة المختارة</Text>
+                <View style={styles.packageDetailsContent}>
+                  <Text style={styles.packageDetailsText}>
+                    الاسم: {PACKAGE_INFO[selectedPackage].name}
+                  </Text>
+                  <Text style={styles.packageDetailsText}>
+                    السعر: {PACKAGE_INFO[selectedPackage].price} جنيه
+                  </Text>
+                  <Text style={styles.packageDetailsText}>
+                    المدة: {PACKAGE_INFO[selectedPackage].duration} أيام
+                  </Text>
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptTitle}>🧾 صورة الإيصال</Text>
+                    <TouchableOpacity style={styles.uploadButton} onPress={pickReceiptImage}>
+                      <Text style={styles.uploadButtonText}>رفع صورة الإيصال</Text>
+                    </TouchableOpacity>
+                    {receiptImage && (
+                      <View style={styles.imagePreview}>
+                        <Image source={{ uri: receiptImage.uri }} style={styles.image} />
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={removeReceiptImage}
+                        >
+                          <Text style={styles.deleteButtonText}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>📸 صور المشروع</Text>
 
             <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
@@ -742,6 +840,67 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  packageContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  packageOption: {
+    borderWidth: 2,
+    borderColor: '#e1e5e9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    width: '100%',
+    backgroundColor: '#fff',
+  },
+  packageOptionSelected: {
+    borderColor: '#4D00B1',
+    backgroundColor: '#e6d9ff',
+  },
+  packageText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetails: {
+    marginTop: 20,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 2,
+    borderColor: '#4D00B1',
+  },
+  packageDetailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4D00B1',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetailsContent: {
+    alignItems: 'flex-end',
+  },
+  packageDetailsText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  receiptSection: {
+    marginTop: 15,
+    margin:'auto'
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 10,
+    writingDirection: 'rtl',
   },
   buttonContainer: {
     marginHorizontal: 20,
