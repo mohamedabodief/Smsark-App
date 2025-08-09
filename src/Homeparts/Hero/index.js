@@ -9,7 +9,6 @@ const SimpleHeroSlider = () => {
 
   useEffect(() => {
     const unsubscribe = HomepageAdvertisement.subscribeActiveAds((adsData) => {
-      // console.log('All Ads:', adsData.map(ad => ad.image));
       setAds(adsData); // تم حذف فلترة approved
       setIndex(0);
     });

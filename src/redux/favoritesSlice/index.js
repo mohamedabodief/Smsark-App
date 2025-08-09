@@ -9,7 +9,6 @@ const saveFavoritesToStorage = async (favorites) => {
   try {
     await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
   } catch (error) {
-    console.error('Error saving to AsyncStorage:', error);
   }
 };
 
@@ -19,7 +18,6 @@ const loadFavoritesFromStorage = async () => {
     const json = await AsyncStorage.getItem('favorites');
     return json ? JSON.parse(json) : [];
   } catch (error) {
-    console.error('Error loading from AsyncStorage:', error);
     return [];
   }
 };

@@ -12,7 +12,6 @@ import { useNavigation } from '@react-navigation/native';
 import { auth } from '../../../FireBase/firebaseConfig';
 export default function FinancingCard({ item }) {
     const navigation = useNavigation();
-    // console.log(item);
     return (
         <TouchableOpacity style={[styles.card, { borderWidth: 0.2, borderColor: '#fff' }]}
             onPress={() => navigation.navigate('detailsForFinancingAds', { id: item.id })}>

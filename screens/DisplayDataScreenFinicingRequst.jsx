@@ -57,17 +57,7 @@ const handleConfirm = async () => {
       reviewStatus: 'pending',
       submitted_at: new Date(), 
     });
-
-    console.log('Saving financing request:', {
-      user_id: financingRequest.user_id,
-      advertisement_id: financingRequest.advertisement_id,
-      advertisement_title: financingRequest.advertisement_title, 
-      monthly_income: financingRequest.monthly_income,
-      financing_amount: financingRequest.financing_amount,
-    });
-
     const requestId = await financingRequest.save();
-    console.log('Financing request saved with ID:', requestId);
 
     Alert.alert(
       'نجح الحفظ',
@@ -80,7 +70,6 @@ const handleConfirm = async () => {
       ]
     );
   } catch (error) {
-    console.error('Error saving financing request:', error.message);
     Alert.alert(
       'خطأ في الحفظ',
       `حدث خطأ أثناء حفظ طلب التمويل: ${error.message}`,
@@ -115,7 +104,6 @@ const handleConfirm = async () => {
               <Button
                 title="تأكيد"
                 onPress={() => {
-                  console.log('Confirm button pressed, formData:', formData, 'advertisementId:', advertisementId);
                   handleConfirm();
                 }}
                 color="#6E00FE"

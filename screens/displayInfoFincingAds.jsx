@@ -14,19 +14,20 @@ import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAd
 import { auth, db } from '../FireBase/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
+const PACKAGE_INFO = {
+  1: { name: 'باقة الأساس', price: 100, duration: 7 },
+  2: { name: 'باقة النخبة', price: 150, duration: 14 },
+  3: { name: 'باقة التميز', price: 200, duration: 21 },
+};
+
 const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
-  const { formData, images } = route.params || {};
+  const { formData, images, receiptImage } = route.params || {};
   const userId = auth.currentUser?.uid;
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Financing+Image';
 
   useEffect(() => {
-    console.log('DisplayInfoAddFinancingAds: Rendering with userId:', userId);
-    console.log('Form Data:', formData);
-    console.log('Images:', images);
-
     if (!formData) {
-      console.log('No formData, showing Alert and navigating back');
       Alert.alert('خطأ', 'لم يتم العثور على بيانات الإعلان', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
       ]);
@@ -34,7 +35,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     }
 
     if (!userId) {
-      console.log('No userId, showing Alert and navigating to Login');
       Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً', [
         { text: 'حسناً', onPress: () => navigation.navigate('Login') },
       ]);
@@ -42,7 +42,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
     }
 
     if (!formData.title && !formData.description && !images?.length) {
-      console.log('No valid data or images, showing Alert and navigating back');
       Alert.alert('خطأ', 'البيانات أو الصورة غير متوفرة', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
       ]);
@@ -51,7 +50,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
   const handleSubmit = async () => {
     if (!userId) {
-      console.log('No userId, showing Alert and navigating to Login');
       Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً');
       navigation.navigate('Login');
       return;
@@ -59,8 +57,6 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-      console.log('Starting handleSubmit with userId:', userId);
-
       // تحديث نوع المستخدم في Firestore
       await setDoc(
         doc(db, 'users', userId),
@@ -70,15 +66,13 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         },
         { merge: true }
       );
-      console.log('User type updated to organization for UID:', userId);
 
-      // تحويل الصور إلى كائنات File
+      // تحويل صور الإعلان إلى كائنات File
       let imageFiles = [];
       if (images && images.length > 0) {
         imageFiles = await Promise.all(
           images.map(async (image, index) => {
             try {
-              console.log('Fetching image URI:', image.uri);
               const response = await fetch(image.uri);
               if (!response.ok) {
                 throw new Error(`Failed to fetch image: ${image.uri}`);
@@ -86,18 +80,31 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
               const blob = await response.blob();
               return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
             } catch (error) {
-              console.error('Error converting image:', error);
               return null;
             }
           })
         ).then(files => files.filter(file => file !== null));
       }
       if (imageFiles.length === 0) {
-        console.log('No valid images, using default image');
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
-      console.log('Image Files (sent to Firestore):', imageFiles);
+      // تحويل صورة الإيصال إلى كائن File
+      let receiptFile = null;
+      if (receiptImage) {
+        try {
+          const response = await fetch(receiptImage.uri);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch receipt image: ${receiptImage.uri}`);
+          }
+          const blob = await response.blob();
+          receiptFile = new File([blob], 'receipt.jpg', { type: 'image/jpeg' });
+        } catch (error) {
+          Alert.alert('خطأ', `فشل في تحميل صورة الإيصال: ${error.message}`);
+          setLoading(false);
+          return;
+        }
+      }
 
       // إعداد بيانات الإعلان
       const adData = {
@@ -118,31 +125,20 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
         receipt_image: null,
         reviewed_by: null,
         review_note: null,
-        adPackage: null,
+        adPackage: formData.adPackage || null,
       };
 
-      console.log('Ad Data prepared:', adData);
-
-      console.log('Creating FinancingAdvertisement instance');
       const financingAd = new FinancingAdvertisement(adData);
-      console.log('Calling save method with imageFiles:', imageFiles);
-      const docId = await financingAd.save(imageFiles);
-        //  navigation.navigate('MyAds');
-      console.log('Advertisement saved with docId:', docId);
-
-      console.log('Showing success Alert, will navigate to MyAds');
-    Alert.alert(
-                 'نجح الإرسال',
-                 'تم رفع إعلانك وهو الآن قيد المراجعة',
-                 [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
-               );
+      await financingAd.save(imageFiles, receiptFile);
+      Alert.alert(
+        'نجح الإرسال',
+        'تم رفع إعلانك وهو الآن قيد المراجعة',
+        [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+      );
     } catch (error) {
-      console.error('Error saving financing ad:', error);
-      console.log('Showing error Alert');
       Alert.alert('خطأ', `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
     } finally {
       setLoading(false);
-      console.log('handleSubmit completed, loading set to false');
     }
   };
 
@@ -157,6 +153,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
       interest_rate_upto_5: 'فائدة حتى 5 سنوات (%)',
       interest_rate_upto_10: 'فائدة حتى 10 سنوات (%)',
       interest_rate_above_10: 'فائدة أكثر من 10 سنوات (%)',
+      adPackage: 'الباقة',
     };
     return labels[key] || key;
   };
@@ -185,7 +182,7 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
             <Text style={styles.errorText}>لا توجد بيانات إعلان لعرضها</Text>
           ) : (
             Object.entries(formData).map(([key, value]) => {
-              if (value === '' || value === null || value === undefined) {
+              if (value === '' || value === null || value === undefined || key === 'adPackage') {
                 return null;
               }
               if (key === 'description') {
@@ -203,6 +200,36 @@ const DisplayInfoAddFinancingAds = ({ route, navigation }) => {
                 </View>
               );
             })
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📦 تفاصيل الباقة والإيصال</Text>
+          {formData.adPackage && PACKAGE_INFO[formData.adPackage] ? (
+            <View style={styles.packageDetails}>
+              <Text style={styles.packageDetailsTitle}>تفاصيل الباقة المختارة</Text>
+              <View style={styles.packageDetailsContent}>
+                <Text style={styles.packageDetailsText}>
+                  الاسم: {PACKAGE_INFO[formData.adPackage].name}
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  السعر: {PACKAGE_INFO[formData.adPackage].price} جنيه
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  المدة: {PACKAGE_INFO[formData.adPackage].duration} أيام
+                </Text>
+                {receiptImage && (
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptTitle}>🧾 صورة الإيصال</Text>
+                    <View style={styles.imageWrapper}>
+                      <Image source={{ uri: receiptImage.uri }} style={styles.imagePreview} />
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.errorText}>لم يتم اختيار باقة</Text>
           )}
         </View>
 
@@ -346,16 +373,56 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     writingDirection: 'rtl',
   },
+  packageDetails: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#4D00B1',
+  },
+  packageDetailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4D00B1',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetailsContent: {
+    alignItems: 'flex-end',
+  },
+  packageDetailsText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  receiptSection: {
+    marginTop: 15,
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 10,
+    writingDirection: 'rtl',
+  },
   imagePreviewContainer: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     marginBottom: 16,
   },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 8,
+    marginBottom: 8,
+  },
   imagePreview: {
     width: 100,
     height: 100,
-    marginRight: 8,
-    marginBottom: 8,
+    borderRadius: 8,
   },
   imageCount: {
     color: '#28a745',

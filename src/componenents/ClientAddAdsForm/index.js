@@ -19,7 +19,7 @@ export default function ClientAddAdsForm() {
       city,
       image: selectedImage
     };
-    console.log(fullData);
+
   };
 
   const pickImage = async () => {

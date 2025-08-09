@@ -14,45 +14,49 @@ import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/R
 import { auth, db } from '../FireBase/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 
+const PACKAGE_INFO = {
+  1: { name: 'باقة الأساس', price: 100, duration: 7 },
+  2: { name: 'باقة النخبة', price: 150, duration: 14 },
+  3: { name: 'باقة التميز', price: 200, duration: 21 },
+};
+
 const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
-  const { formData, images } = route.params || {};
+  const { formData, images, receiptImage } = route.params || {};
   const userId = auth.currentUser?.uid;
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Developer+Image';
 
   useEffect(() => {
-    console.log('DisplayInfoAddDeveloperAds: Rendering with userId:', userId);
-    console.log('Form Data:', formData);
-    console.log('Images:', images);
-
     if (!formData) {
-      console.log('No formData, navigating back');
-      navigation.goBack();
+      Alert.alert('خطأ', 'لم يتم العثور على بيانات الإعلان', [
+        { text: 'حسناً', onPress: () => navigation.goBack() },
+      ]);
       return;
     }
 
     if (!userId) {
-      console.log('No userId, navigating to Login');
-      navigation.navigate('Login');
+      Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً', [
+        { text: 'حسناً', onPress: () => navigation.navigate('Login') },
+      ]);
       return;
     }
 
     if (!formData.developer_name && !formData.description && !images?.length) {
-      console.log('No valid data or images, navigating back');
-      navigation.goBack();
+      Alert.alert('خطأ', 'البيانات أو الصورة غير متوفرة', [
+        { text: 'حسناً', onPress: () => navigation.goBack() },
+      ]);
     }
   }, [formData, images, userId, navigation]);
 
   const handleSubmit = async () => {
     if (!userId) {
-      console.log('No userId, navigating to Login');
+      Alert.alert('خطأ', 'يجب تسجيل الدخول أولاً');
       navigation.navigate('Login');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('Starting handleSubmit with userId:', userId);
       await setDoc(
         doc(db, 'users', userId),
         {
@@ -67,7 +71,6 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
         imageFiles = await Promise.all(
           images.map(async (image, index) => {
             try {
-              console.log('Fetching image URI:', image.uri);
               const response = await fetch(image.uri);
               if (!response.ok) {
                 throw new Error(`Failed to fetch image: ${image.uri}`);
@@ -75,21 +78,31 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
               const blob = await response.blob();
               return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
             } catch (error) {
-              console.error('Error converting image:', error);
               return null;
             }
           })
         ).then(files => files.filter(file => file !== null));
       }
-
       if (imageFiles.length === 0) {
-        console.log('No valid images, using default image');
         imageFiles = [DEFAULT_IMAGE_URL];
       }
 
-      console.log('Image Files before save:', imageFiles);
+      let receiptFile = null;
+      if (receiptImage) {
+        try {
+          const response = await fetch(receiptImage.uri);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch receipt image: ${receiptImage.uri}`);
+          }
+          const blob = await response.blob();
+          receiptFile = new File([blob], 'receipt.jpg', { type: 'image/jpeg' });
+        } catch (error) {
+          Alert.alert('خطأ', `فشل في تحميل صورة الإيصال: ${error.message}`);
+          setLoading(false);
+          return;
+        }
+      }
 
-      // توافق الحقول مع RealEstateDeveloperAdvertisement
       const adData = {
         userId: userId,
         developer_name: formData.developer_name || '',
@@ -116,26 +129,20 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
         receipt_image: null,
         reviewed_by: null,
         review_note: null,
-        adPackage: null,
+        adPackage: formData.adPackage || null,
         images: imageFiles.map(file => typeof file === 'string' ? file : file.name || DEFAULT_IMAGE_URL),
       };
 
-      console.log('Ad Data prepared:', adData);
       const developerAd = new RealEstateDeveloperAdvertisement(adData);
-      console.log('Calling save with imageFiles:', imageFiles);
-      const docId = await developerAd.save(imageFiles);
-    Alert.alert(
-              'نجح الإرسال',
-              'تم رفع إعلانك وهو الآن قيد المراجعة',
-              [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
-            );
+      await developerAd.save(imageFiles, receiptFile);
+      Alert.alert(
+        'نجح الإرسال',
+        'تم رفع إعلانك وهو الآن قيد المراجعة',
+        [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+      );
     } catch (error) {
-      console.error('Error saving developer ad:', error);
-      console.log('Navigation to MyAds after error');
-      navigation.navigate('MyAds');
-    } finally {
+      Alert.alert('خطأ', `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى'}`);
       setLoading(false);
-      console.log('handleSubmit completed, loading set to false');
     }
   };
 
@@ -158,6 +165,7 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
       negotiable: 'قابل للتفاوض',
       deliveryTerms: 'شروط التسليم',
       area: 'المساحة (م²)',
+      adPackage: 'الباقة',
     };
     return labels[key] || key;
   };
@@ -186,7 +194,7 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
             <Text style={styles.errorText}>لا توجد بيانات إعلان لعرضها</Text>
           ) : (
             Object.entries(formData).map(([key, value]) => {
-              if (value === '' || value === null || value === undefined) {
+              if (value === '' || value === null || value === undefined || key === 'adPackage') {
                 return null;
               }
               if (key === 'description') {
@@ -204,6 +212,36 @@ const DisplayInfoAddDeveloperAds = ({ route, navigation }) => {
                 </View>
               );
             })
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📦 تفاصيل الباقة والإيصال</Text>
+          {formData.adPackage && PACKAGE_INFO[formData.adPackage] ? (
+            <View style={styles.packageDetails}>
+              <Text style={styles.packageDetailsTitle}>تفاصيل الباقة المختارة</Text>
+              <View style={styles.packageDetailsContent}>
+                <Text style={styles.packageDetailsText}>
+                  الاسم: {PACKAGE_INFO[formData.adPackage].name}
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  السعر: {PACKAGE_INFO[formData.adPackage].price} جنيه
+                </Text>
+                <Text style={styles.packageDetailsText}>
+                  المدة: {PACKAGE_INFO[formData.adPackage].duration} أيام
+                </Text>
+                {receiptImage && (
+                  <View style={styles.receiptSection}>
+                    <Text style={styles.receiptTitle}>🧾 صورة الإيصال</Text>
+                    <View style={styles.imageWrapper}>
+                      <Image source={{ uri: receiptImage.uri }} style={styles.imagePreview} />
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.errorText}>لم يتم اختيار باقة</Text>
           )}
         </View>
 
@@ -347,16 +385,56 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     writingDirection: 'rtl',
   },
+  packageDetails: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#4D00B1',
+  },
+  packageDetailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4D00B1',
+    marginBottom: 10,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  packageDetailsContent: {
+    alignItems: 'flex-end',
+  },
+  packageDetailsText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  receiptSection: {
+    marginTop: 15,
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'right',
+    marginBottom: 10,
+    writingDirection: 'rtl',
+  },
   imagePreviewContainer: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     marginBottom: 16,
   },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 8,
+    marginBottom: 8,
+  },
   imagePreview: {
     width: 100,
     height: 100,
-    marginRight: 8,
-    marginBottom: 8,
+    borderRadius: 8,
   },
   imageCount: {
     color: '#28a745',

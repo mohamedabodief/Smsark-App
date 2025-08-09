@@ -18,28 +18,22 @@ const MyAdsScreen = ({ navigation, route }) => {
   const fetchUserType = async () => {
     try {
       if (!auth.currentUser) {
-        console.error('No authenticated user found');
         Alert.alert('خطأ', 'المستخدم غير مسجل دخول', [
           { text: 'حسناً', onPress: () => navigation.navigate('Login') }
         ]);
         setLoading(false);
         return;
       }
-      console.log('Current auth user:', auth.currentUser);
-      console.log('Fetching user type for UID:', auth.currentUser.uid);
       const userDoc = await getDocs(
         query(collection(db, 'users'), where('uid', '==', auth.currentUser.uid))
       );
       if (!userDoc.empty) {
         const userData = userDoc.docs[0].data();
-        console.log('User data:', userData);
         setUserType(userData.userType || 'client');
       } else {
-        console.warn('No user document found, assuming client');
         setUserType('client');
       }
     } catch (error) {
-      console.error('Error fetching user type:', error.message || error);
       Alert.alert('خطأ', 'فشل في جلب بيانات المستخدم: ' + (error.message || 'يرجى المحاولة لاحقاً'));
       setUserType('client');
     } finally {
@@ -50,21 +44,16 @@ const MyAdsScreen = ({ navigation, route }) => {
   const fetchAdvertisements = async () => {
     try {
       if (!auth.currentUser) {
-        console.error('No authenticated user found');
         Alert.alert('خطأ', 'المستخدم غير مسجل دخول', [
           { text: 'حسناً', onPress: () => navigation.navigate('Login') }
         ]);
         setLoading(false);
         return;
       }
-
-      console.log('Fetching advertisements for UID:', auth.currentUser.uid, 'with userType:', userType);
       let ads = [];
 
       if (userType === 'client') {
-        console.log('Using ClientAdvertisement class to fetch ads');
         const clientAds = await ClientAdvertisement.getByUserId(auth.currentUser.uid);
-        console.log('Client ads fetched:', clientAds);
         ads = [...ads, ...clientAds.map(ad => ({
           id: ad.id,
           title: ad.title || 'بدون عنوان',
@@ -80,13 +69,11 @@ const MyAdsScreen = ({ navigation, route }) => {
       }
 
       if (userType === 'organization') {
-        console.log('Querying FinancingAdvertisements');
         const financingAdsQuery = query(
           collection(db, 'FinancingAdvertisements'),
           where('userId', '==', auth.currentUser.uid)
         );
         const financingAdsSnapshot = await getDocs(financingAdsQuery);
-        console.log('Financing ads found:', financingAdsSnapshot.size, 'data:', financingAdsSnapshot.docs.map(doc => doc.data()));
         ads = [...ads, ...financingAdsSnapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().title || 'بدون عنوان',
@@ -99,14 +86,11 @@ const MyAdsScreen = ({ navigation, route }) => {
           source: 'financing',
           ...doc.data(),
         }))];
-
-        console.log('Querying RealEstateDeveloperAdvertisements');
         const developerAdsQuery = query(
           collection(db, 'RealEstateDeveloperAdvertisements'),
           where('userId', '==', auth.currentUser.uid)
         );
         const developerAdsSnapshot = await getDocs(developerAdsQuery);
-        console.log('Developer ads found:', developerAdsSnapshot.size, 'data:', developerAdsSnapshot.docs.map(doc => doc.data()));
         ads = [...ads, ...developerAdsSnapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().developer_name || 'بدون عنوان',
@@ -122,12 +106,9 @@ const MyAdsScreen = ({ navigation, route }) => {
           ...doc.data(),
         }))];
       }
-
-      console.log('Total advertisements fetched:', ads.length, 'ads:', ads);
       setAdvertisements(ads);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching advertisements:', error.message || error);
       Alert.alert('خطأ', 'فشل في جلب الإعلانات: ' + (error.message || 'يرجى المحاولة لاحقاً'));
       setLoading(false);
     }
@@ -174,9 +155,8 @@ const MyAdsScreen = ({ navigation, route }) => {
                   const imageRef = ref(storage, `${storagePathPrefix}/${auth.currentUser.uid}/${id}/image_${i}.jpg`);
                   try {
                     await deleteObject(imageRef);
-                    console.log(`Deleted image: ${storagePathPrefix}/${auth.currentUser.uid}/${id}/image_${i}.jpg`);
                   } catch (error) {
-                    console.warn(`Failed to delete image ${i}: ${error.message}`);
+                  
                   }
                 }));
               }
@@ -184,11 +164,9 @@ const MyAdsScreen = ({ navigation, route }) => {
           
               const adRef = doc(db, collectionName, id);
               await deleteDoc(adRef);
-              console.log(`Deleted ad ${id} from ${collectionName}`);
               setAdvertisements(prev => prev.filter(ad => ad.id !== id));
               Alert.alert('نجاح', 'تم حذف الإعلان بنجاح');
             } catch (error) {
-              console.error('Error deleting ad:', error.message || error);
               Alert.alert('خطأ', 'فشل في حذف الإعلان: ' + (error.message || 'يرجى المحاولة لاحقاً'));
             } finally {
               setDeletingAdId(null);
@@ -201,20 +179,16 @@ const MyAdsScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (!auth.currentUser || !userType) return;
-
-    console.log('Setting up onSnapshot for advertisements, userType:', userType);
     
     let unsubscribeFinancing = () => {};
     let unsubscribeDeveloper = () => {};
 
     if (userType === 'organization') {
-      console.log('Setting up onSnapshot for FinancingAdvertisements');
       const financingAdsQuery = query(
         collection(db, 'FinancingAdvertisements'),
         where('userId', '==', auth.currentUser.uid)
       );
       unsubscribeFinancing = onSnapshot(financingAdsQuery, (snapshot) => {
-        console.log('Financing onSnapshot triggered, changes detected:', snapshot.docChanges().length);
         const updatedAds = snapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().title || 'بدون عنوان',
@@ -232,17 +206,13 @@ const MyAdsScreen = ({ navigation, route }) => {
           return [...otherAds, ...updatedAds];
         });
       }, (error) => {
-        console.error('Financing onSnapshot error:', error.message || error);
         Alert.alert('خطأ', 'فشل في مزامنة الإعلانات: ' + (error.message || 'يرجى المحاولة لاحقاً'));
       });
-
-      console.log('Setting up onSnapshot for RealEstateDeveloperAdvertisements');
       const developerAdsQuery = query(
         collection(db, 'RealEstateDeveloperAdvertisements'),
         where('userId', '==', auth.currentUser.uid)
       );
       unsubscribeDeveloper = onSnapshot(developerAdsQuery, (snapshot) => {
-        console.log('Developer onSnapshot triggered, changes detected:', snapshot.docChanges().length);
         const updatedAds = snapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().developer_name || 'بدون عنوان',
@@ -262,19 +232,16 @@ const MyAdsScreen = ({ navigation, route }) => {
           return [...otherAds, ...updatedAds];
         });
       }, (error) => {
-        console.error('Developer onSnapshot error:', error.message || error);
         Alert.alert('خطأ', 'فشل في مزامنة الإعلانات: ' + (error.message || 'يرجى المحاولة لاحقاً'));
       });
     }
 
     if (userType === 'client') {
-      console.log('Setting up onSnapshot for ClientAdvertisements');
       const clientAdsQuery = query(
         collection(db, 'ClientAdvertisements'),
         where('userId', '==', auth.currentUser.uid)
       );
       const unsubscribeClient = onSnapshot(clientAdsQuery, (snapshot) => {
-        console.log('Client onSnapshot triggered, changes detected:', snapshot.docChanges().length);
         const updatedAds = snapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().title || 'بدون عنوان',
@@ -292,37 +259,31 @@ const MyAdsScreen = ({ navigation, route }) => {
           return [...otherAds, ...updatedAds];
         });
       }, (error) => {
-        console.error('Client onSnapshot error:', error.message || error);
         Alert.alert('خطأ', 'فشل في مزامنة الإعلانات: ' + (error.message || 'يرجى المحاولة لاحقاً'));
       });
       return () => {
-        console.log('Cleaning up onSnapshot subscriptions');
         unsubscribeClient();
       };
     }
 
     return () => {
-      console.log('Cleaning up onSnapshot subscriptions');
       unsubscribeFinancing();
       unsubscribeDeveloper();
     };
   }, [userType]);
 
   useEffect(() => {
-    console.log('MyAdsScreen useEffect triggered');
     fetchUserType();
   }, []);
 
   useEffect(() => {
     if (userType !== null) {
-      console.log('userType set to:', userType);
       fetchAdvertisements();
     }
   }, [userType, refresh]);
 
   useEffect(() => {
     if (route.params?.newAd) {
-      console.log('New ad detected, refreshing advertisements');
       setRefresh(prev => !prev);
     }
   }, [route.params?.newAd]);

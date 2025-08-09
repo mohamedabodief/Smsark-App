@@ -188,7 +188,7 @@ async saveToFirestore(imageFile = null) {
       const imageRef = ref(storage, path);
       await deleteObject(imageRef);
     } catch (error) {
-      console.warn('⚠️ لم يتم حذف الصورة من Storage:', error.message);
+ 
     }
   }
 

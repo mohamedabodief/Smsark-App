@@ -98,7 +98,7 @@ const { uid } = route.params;
         },
       ]);
     } catch (err) {
-      console.error('Error saving to Firestore:', err);
+    
       Alert.alert('خطأ', err.message);
     }
   };

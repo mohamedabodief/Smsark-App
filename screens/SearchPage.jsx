@@ -148,7 +148,6 @@ const SearchPage = ({ navigation }) => {
       setAds(filteredAds);
       setModalVisible(false);
     } catch (error) {
-      console.error('Error applying filters:', error);
       setError('فشل في جلب الإعلانات');
     } finally {
       setLoading(false);

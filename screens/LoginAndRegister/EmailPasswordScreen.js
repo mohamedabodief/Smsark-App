@@ -6,6 +6,11 @@ import registerWithEmailAndPassword from '../../FireBase/authService/registerWit
 export default function EmailPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
 
   const handleRegister = async () => {
     if (!email || !password) {
@@ -22,8 +27,8 @@ export default function EmailPasswordScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                 keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       style={styles.container}
     >
       <ImageBackground
@@ -50,12 +55,19 @@ export default function EmailPasswordScreen({ navigation }) {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>كلمة المرور</Text>
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={24} color="#6E00FE" style={styles.icon} />
+              <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+                <Ionicons
+                  name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
+                  size={24}
+                  color="#6E00FE"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
               <TextInput
                 placeholder="أدخل كلمة المرور"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!isPasswordVisible}
                 style={styles.input}
               />
             </View>
@@ -79,10 +91,10 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    width: '100%', 
-    height: '100%', 
-    display:'flex',
-    justifyContent:'center'
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -106,8 +118,7 @@ const styles = StyleSheet.create({
     color: '#5A00D6',
     textAlign: 'center',
     marginBottom: 20,
-    width:'100%'
-    
+    width: '100%',
   },
   inputGroup: {
     marginBottom: 15,
@@ -131,6 +142,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  iconContainer: {
+    padding: 5,
   },
   icon: {
     marginLeft: 10,
@@ -164,7 +178,7 @@ const styles = StyleSheet.create({
     color: '#5A00D6',
     textAlign: 'center',
     marginTop: 10,
-    marginRight:60,
+    marginRight: 60,
     width: '100%',
   },
 });

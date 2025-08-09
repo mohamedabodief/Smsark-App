@@ -15,26 +15,30 @@ import { auth } from '../FireBase/firebaseConfig';
 import Layout from '../src/Layout';
 
 const DisplayInfoAddClientAds = ({ route, navigation }) => {
-  const { formData, images } = route.params || {};
+  const { formData, images, receipt } = route.params || {};
   const [loading, setLoading] = useState(false);
   const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/150?text=Default+Image';
+  const packages = {
+    '1': 'باقة الأساس (100, 7 أيام)',
+    '2': 'باقة النخبة (150 جنيه, 14 يوم)',
+    '3': 'باقة التميز (200 جنيه, 21 يوم)',
+  };
 
   useEffect(() => {
-    if (!formData || !images || images.length === 0) {
-      console.error('Missing formData or images');
-      Alert.alert('خطأ', 'البيانات أو الصور غير متوفرة', [
+    if (!formData || !images || images.length === 0 || !receipt || !formData.adPackage) {
+      Alert.alert('خطأ', 'البيانات أو الصور أو صورة الإيصال أو الباقة غير متوفرة', [
         { text: 'حسناً', onPress: () => navigation.goBack() },
       ]);
     }
-  }, [formData, images, navigation]);
+  }, [formData, images, receipt, navigation]);
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
       if (!auth.currentUser) throw new Error('المستخدم غير مسجل دخول');
-      if (!formData || !images || images.length === 0) throw new Error('البيانات أو الصور غير متوفرة');
-
-      // تحويل الصور إلى كائنات File
+      if (!formData || !images || images.length === 0 || !receipt || !formData.adPackage) {
+        throw new Error('البيانات أو الصور أو صورة الإيصال أو الباقة غير متوفرة');
+      }
       let imageFiles = [];
       if (images.length > 0) {
         imageFiles = await Promise.all(
@@ -45,7 +49,7 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
               const blob = await response.blob();
               return new File([blob], `image_${index + 1}.jpg`, { type: 'image/jpeg' });
             } catch (error) {
-              console.error('Error converting image:', error);
+              console.warn(`فشل تحميل الصورة ${index + 1}:`, error);
               return null;
             }
           })
@@ -53,6 +57,15 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
       }
       if (imageFiles.length === 0) {
         imageFiles = [DEFAULT_IMAGE_URL];
+      }
+      let receiptFile = null;
+      try {
+        const response = await fetch(receipt.uri);
+        if (!response.ok) throw new Error(`فشل تحميل صورة الإيصال: ${receipt.uri}`);
+        const blob = await response.blob();
+        receiptFile = new File([blob], `receipt.jpg`, { type: 'image/jpeg' });
+      } catch (error) {
+        throw new Error(`فشل تحميل صورة الإيصال: ${error.message}`);
       }
 
       const advertisementData = {
@@ -69,6 +82,7 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
         ad_type: formData.adType,
         status: formData.adStatus,
         description: formData.description,
+        adPackage: formData.adPackage,
         userId: auth.currentUser.uid,
         location: `${formData.city}, ${formData.governorate}`,
         created_at: new Date().toISOString(),
@@ -77,6 +91,7 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
         reviewStatus: 'pending',
       };
 
+      // التحقق من اكتمال الحقول
       Object.keys(advertisementData).forEach((key) => {
         if (advertisementData[key] === undefined || advertisementData[key] === null) {
           throw new Error(`حقل ${key} غير مكتمل`);
@@ -84,14 +99,14 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
       });
 
       const advertisement = new ClientAdvertisement(advertisementData);
-      await advertisement.save(imageFiles);
-    Alert.alert(
-              'نجح الإرسال',
-              'تم رفع إعلانك وهو الآن قيد المراجعة',
-              [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
-            );
+      await advertisement.save(imageFiles, receiptFile);
+
+      Alert.alert(
+        'نجح الإرسال',
+        'تم رفع إعلانك وهو الآن قيد المراجعة',
+        [{ text: 'حسناً', onPress: () => navigation.navigate('MyAds') }]
+      );
     } catch (error) {
-      console.error('Error submitting advertisement:', error);
       Alert.alert(
         'خطأ في الإرسال',
         `حدث خطأ أثناء حفظ الإعلان: ${error.message || 'يرجى المحاولة مرة أخرى.'}`,
@@ -119,9 +134,10 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
     adType: 'نوع الإعلان',
     adStatus: 'حالة الإعلان',
     description: 'الوصف',
+    adPackage: 'الباقة',
   };
 
-  if (!formData || !images || images.length === 0) {
+  if (!formData || !images || images.length === 0 || !receipt || !formData.adPackage) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>جاري تحميل البيانات...</Text>
@@ -146,6 +162,7 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
               price: `${formData.price} جنيه`,
               area: `${formData.area} متر مربع`,
               buildingDate: formData.buildingDate,
+              adPackage: packages[formData.adPackage] || 'غير محدد',
             }).map(([key, value]) => (
               <View key={key} style={styles.row}>
                 <Text style={styles.label}>{translate[key]}</Text>
@@ -162,14 +179,24 @@ const DisplayInfoAddClientAds = ({ route, navigation }) => {
                   key={index}
                   source={{ uri: image.uri || DEFAULT_IMAGE_URL }}
                   style={{ width: 100, height: 100, borderRadius: 12, marginRight: 8, marginBottom: 16 }}
-                  onError={(error) => {
-                    console.error('Image load error:', error.nativeEvent.error);
+                  onError={() => {
                     Alert.alert('خطأ', 'لا يمكن تحميل الصورة المختارة.');
                   }}
                 />
               ))}
             </View>
             <Text style={styles.imageCount}>عدد الصور: {images.length}</Text>
+            <Text style={styles.sectionTitle}>📄 صورة الإيصال</Text>
+            <View style={styles.imagePreviewContainer}>
+              <Image
+                source={{ uri: receipt.uri || DEFAULT_IMAGE_URL }}
+                style={{ width: 100, height: 100, borderRadius: 12, marginRight: 8, marginBottom: 16 }}
+                onError={() => {
+                  Alert.alert('خطأ', 'لا يمكن تحميل صورة الإيصال.');
+                }}
+              />
+            </View>
+            <Text style={styles.imageCount}>تم إضافة صورة الإيصال</Text>
           </View>
 
           <View style={styles.section}>

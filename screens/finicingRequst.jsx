@@ -73,7 +73,6 @@ const FinancingRequestComponent = ({ navigation }) => {
                     setFieldError('financing_amount', `مبلغ التمويل يجب أن يكون بين ${start_limit} و ${end_limit}`);
                     return;
                   }
-                  console.log('Submitting form with values:', values, 'advertisementId:', advertisementId);
                   navigation.navigate('DisplayDataScreenFinicingRequst', {
                     formData: values,
                     advertisementId,
@@ -81,7 +80,6 @@ const FinancingRequestComponent = ({ navigation }) => {
                     userId,
                   });
                 } catch (error) {
-                  console.error('FinancingRequest: Error validating financing amount:', error.message);
                   setFieldError('financing_amount', 'حدث خطأ أثناء التحقق من مبلغ التمويل');
                 }
               }}
@@ -123,10 +121,10 @@ const FinancingRequestComponent = ({ navigation }) => {
                           return;
                         }
                         const installment = await financingRequest.calculateMonthlyInstallment();
-                        console.log('FinancingRequest: Calculated monthly installment:', installment);
+                       
                         setMonthlyInstallment(installment);
                       } catch (error) {
-                        console.error('FinancingRequest: Error calculating monthly installment:', error.message);
+                       
                         setMonthlyInstallment('0.00');
                       }
                     } else {

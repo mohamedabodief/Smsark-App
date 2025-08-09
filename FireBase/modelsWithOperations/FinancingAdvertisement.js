@@ -59,33 +59,26 @@ class FinancingAdvertisement {
   }
 
   async save(imagesFiles = [], receiptFile = null) {
-    console.log('Saving advertisement for user:', this.userId || 'unknown');
+   
 
     const colRef = collection(db, 'FinancingAdvertisements');
     const docRef = await addDoc(colRef, this.#getAdData());
     this.#id = docRef.id;
     await updateDoc(docRef, { id: this.#id });
-    console.log('Document written with ID:', this.#id);
     if (imagesFiles.length > 0 && imagesFiles[0] instanceof File) {
-      console.log('Processing File objects:', imagesFiles);
       const imageUrls = await this.#uploadImages(imagesFiles);
       this.images = imageUrls;
       await updateDoc(docRef, { images: imageUrls });
-      console.log('Images updated in Firestore:', imageUrls);
     } else if (imagesFiles.length > 0 && typeof imagesFiles[0] === 'string') {
-      console.log('Processing URL strings:', imagesFiles);
       this.images = imagesFiles;
       await updateDoc(docRef, { images: imagesFiles });
-      console.log('Images updated in Firestore:', imagesFiles);
     }
 
     // رفع الإيصال
     if (receiptFile) {
-      console.log('Processing receipt:', receiptFile);
       const receiptUrl = await this.#uploadReceipt(receiptFile);
       this.receipt_image = receiptUrl;
       await updateDoc(docRef, { receipt_image: receiptUrl });
-      console.log('Receipt updated in Firestore:', receiptUrl);
     }
 
     return this.#id;
@@ -111,26 +104,21 @@ class FinancingAdvertisement {
     if (newImagesFiles?.length > 0) {
       await this.#deleteAllImages();
       if (newImagesFiles[0] instanceof File) {
-        console.log('Processing new File objects:', newImagesFiles);
         const newUrls = await this.#uploadImages(newImagesFiles);
         updates.images = newUrls;
         this.images = newUrls;
       } else if (typeof newImagesFiles[0] === 'string') {
-        console.log('Processing new URL strings:', newImagesFiles);
         updates.images = newImagesFiles;
         this.images = newImagesFiles;
       }
-      console.log('Images updated in Firestore:', updates.images);
     } else if (typeof updates.images === 'undefined') {
       updates.images = this.images;
     }
 
     if (newReceiptFile) {
-      console.log('Processing new receipt:', newReceiptFile);
       const receiptUrl = await this.#uploadReceipt(newReceiptFile);
       updates.receipt_image = receiptUrl;
       this.receipt_image = receiptUrl;
-      console.log('Receipt updated in Firestore:', receiptUrl);
     }
 
     if (typeof updates.userId === 'undefined' || !updates.userId) {
@@ -282,14 +270,11 @@ class FinancingAdvertisement {
       storage,
       `financing_ads/${this.userId}/image_${i + 1}.jpg`
     );
-    console.log('Uploading image to Storage:', `image_${i + 1}.jpg`, 'File:', limited[i]);
     try {
       await uploadBytes(refPath, limited[i]);
       const url = await getDownloadURL(refPath);
       urls.push(url);
-      console.log('Image uploaded, URL:', url);
     } catch (error) {
-      console.error('Error uploading image:', error);
       throw error;
     }
   }
@@ -298,10 +283,8 @@ class FinancingAdvertisement {
   async #uploadReceipt(file) {
     const storage = getStorage();
     const refPath = ref(storage, `financing_ads/${this.userId}/receipt.jpg`);
-    console.log('Uploading receipt to Storage: receipt.jpg');
     await uploadBytes(refPath, file);
     const url = await getDownloadURL(refPath);
-    console.log('Receipt uploaded, URL:', url);
     return url;
   }
 
@@ -311,9 +294,7 @@ class FinancingAdvertisement {
     try {
       const list = await listAll(dirRef);
       await Promise.all(list.items.map((ref) => deleteObject(ref)));
-      console.log('All images deleted from Storage');
     } catch (error) {
-      console.error('Error deleting images:', error);
     }
   }
 
@@ -322,9 +303,7 @@ class FinancingAdvertisement {
     const receiptRef = ref(storage, `financing_ads/${this.userId}/receipt.jpg`);
     try {
       await deleteObject(receiptRef);
-      console.log('Receipt deleted from Storage');
     } catch (error) {
-      console.error('Error deleting receipt:', error);
     }
   }
 
