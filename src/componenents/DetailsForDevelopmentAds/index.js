@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import RealEstateDeveloperAdvertisement from '../../../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
+import StatusBarComponent from '../../../screens/components/StatusBarComponent';
 
 const PACKAGE_INFO = {
   1: { name: 'باقة الأساس', price: 100, duration: 7 },
@@ -81,6 +82,7 @@ export default function DetailsForDevelopment() {
   if (!clientAds) return null;
 
   return (
+    <StatusBarComponent>
     <ScrollView style={styles.container}>
       <Image
         source={mainImage ? { uri: mainImage } : require('../../assets/1.webp')}
@@ -171,6 +173,7 @@ export default function DetailsForDevelopment() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </StatusBarComponent>
   );
 }
 

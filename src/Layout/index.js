@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import * as SecureStore from 'expo-secure-store';
 import Nav from '../componenents/Nav';
 import FooterNav from '../componenents/Footer';
+import StatusBarComponent from '../../screens/components/StatusBarComponent';
 
 async function saveToken(key, value) {
   try {
@@ -71,6 +72,7 @@ export default function Layout({ children, showDrawer = false }) {
     return null;
   }
   return (
+    <StatusBarComponent backgroundColor="#ffffff" barStyle="dark-content">
     <View style={styles.container}>
       <Nav />
       <View style={styles.content}>
@@ -80,6 +82,7 @@ export default function Layout({ children, showDrawer = false }) {
         <FooterNav />
       </View>
     </View>
+    </StatusBarComponent>
   );
 }
 

@@ -20,6 +20,7 @@ import FinancingAdvertisement from '../FireBase/modelsWithOperations/FinancingAd
 import RealEstateDeveloperAdvertisement from '../FireBase/modelsWithOperations/RealEstateDeveloperAdvertisement';
 import FooterNav from '../src/componenents/Footer';
 import Nav from '../src/componenents/Nav';
+import StatusBarComponent from './components/StatusBarComponent';
 
 const SearchPage = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
@@ -162,6 +163,7 @@ const SearchPage = ({ navigation }) => {
   }, [applyFilters]);
 
   return (
+    <StatusBarComponent>
     <GestureHandlerRootView style={styles.container}>
       <Nav />
       <View style={styles.container}>
@@ -170,7 +172,7 @@ const SearchPage = ({ navigation }) => {
             <View style={styles.searchRow}>
               <FontAwesome name="search" size={20} color="white" style={styles.searchIcon} />
               <TextInput
-                placeholder="ادخل المحافظة أو المدينة (مثل القاهرة)"
+                placeholder="ادخل المحافظة أو المدينة"
                 value={searchText}
                 onChangeText={setSearchText}
                 style={styles.input}
@@ -339,6 +341,7 @@ const SearchPage = ({ navigation }) => {
         </View>
       </Modal>
     </GestureHandlerRootView>
+    </StatusBarComponent>
   );
 };
 

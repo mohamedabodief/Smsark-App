@@ -73,12 +73,6 @@ export default function DrawerContent({ navigation, toggleMode, unreadCount, tot
             {...drawerItemProps}
           />
           <Drawer.Item
-            label="تبديل الثيم"
-            icon="theme-light-dark"
-            onPress={toggleMode}
-            {...drawerItemProps}
-          />
-          <Drawer.Item
             label="تواصل معنا"
             icon="headset"
             onPress={() => handleNavigate('ContactUs')}

@@ -143,13 +143,13 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.loginText}>هل نسيت كلمة المرور؟</Text>
+            <Text style={styles.loginText1}>هل نسيت كلمة المرور؟</Text>
           </TouchableOpacity>
           <View style={styles.registerContainer}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Register', { screen: 'EmailPassword' })}
             >
-              <Text style={styles.loginText}>ليس لديك حساب؟ إنشاء حساب</Text>
+              <Text style={styles.loginText2}>ليس لديك حساب؟ إنشاء حساب</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -245,9 +245,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  loginText: {
+  loginText1: {
     color: '#5A00D6',
-    marginRight: 90,
+   marginRight:"30%"
+  },
+   loginText2: {
+    color: '#5A00D6',
+   marginRight:"25%"
   },
   registerContainer: {
     flexDirection: 'row',
