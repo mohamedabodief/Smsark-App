@@ -42,7 +42,7 @@ const aboutUsData = {
   ],
   team: [
     { name: 'محمود يسري', position: 'الرئيس التنفيذي', bio: '...' },
-    { name: 'الاء', position: 'مدير التسويق', bio: '...' },
+    { name: 'آلاء السيد', position: 'مدير التسويق', bio: '...' },
     { name: 'محمد أبو ضيف', position: 'مدير المبيعات', bio: '...' },
   ],
   contactInfo: {
@@ -227,16 +227,17 @@ const AboutUsScreen = () => {
 export default AboutUsScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff',  marginBottom:30 },
   headerImage: { width: '100%', height: 250 },
   overlay: {
     position: 'absolute',
     top: 40,
     left: 20,
-    right: 20,
+    right: 210,
     alignItems: 'flex-end',
+   
   },
-  companyName: { fontSize: 30, fontWeight: 'bold', color: '#673ab7' },
+  companyName: { fontSize: 30, fontWeight: 'bold', color: '#673ab7',marginRight:20 },
   slogan: { fontSize: 18, color: '#673ab7', marginBottom: 10 },
   buttonRow: { flexDirection: 'row', gap: 10 },
   primaryButton: {
@@ -288,5 +289,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     marginVertical: 5,
     borderRadius: 10,
+   
   },
 });

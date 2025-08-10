@@ -15,6 +15,7 @@ import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import FinancingAdvertisement from '../../../FireBase/modelsWithOperations/FinancingAdvertisement';
 import { auth } from '../../../FireBase/firebaseConfig';
 import User from '../../../FireBase/modelsWithOperations/User';
+import StatusBarComponent from '../../../screens/components/StatusBarComponent';
 
 const PACKAGE_INFO = {
   1: { name: 'باقة الأساس', price: 100, duration: 7 },
@@ -113,6 +114,7 @@ export default function DetailsForFinancingAds() {
   if (!clientAds) return null;
 
   return (
+    <StatusBarComponent backgroundColor="#ffffff" barStyle="dark-content">
     <ScrollView style={styles.container}>
       <Image
         source={{ uri: mainImage }}
@@ -189,6 +191,7 @@ export default function DetailsForFinancingAds() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </StatusBarComponent>
   );
 }
 

@@ -12,6 +12,7 @@ import {
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import ClientAdvertisement from '../../../FireBase/modelsWithOperations/ClientAdvertisement';
 import { useRoute } from '@react-navigation/native';
+import StatusBarComponent from '../../../screens/components/StatusBarComponent';
 
 const DetailsForClient = () => {
   const [ad, setAd] = useState(null);
@@ -96,6 +97,7 @@ const DetailsForClient = () => {
   }
 
   return (
+    <StatusBarComponent backgroundColor="#ffffff" barStyle="dark-content">
     <ScrollView style={styles.container}>
       {ad.images?.length > 0 ? (
         <Image
@@ -172,6 +174,7 @@ const DetailsForClient = () => {
         )}
       </View>
     </ScrollView>
+    </StatusBarComponent>
   );
 };
 
