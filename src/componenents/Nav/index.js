@@ -32,6 +32,7 @@ export default function Nav() {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#6E00FE',
+    marginTop:-33,
   },
   logo: {
     width: 160,

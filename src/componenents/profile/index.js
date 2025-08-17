@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   phone: {
-    fontSize: 24,
+    fontSize: 18,
     // fontWeight: 'bold',
     // color: '#000',
   },
