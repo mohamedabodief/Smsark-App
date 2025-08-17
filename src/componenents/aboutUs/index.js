@@ -109,7 +109,7 @@ const AboutUsScreen = () => {
   }, [currentIndex]);
 
   const handleBrowseProperties = () => {
-    navigation.navigate('Home');
+    navigation.navigate('Search');
   };
 
   const handleContactUs = () => {
@@ -206,8 +206,7 @@ const AboutUsScreen = () => {
         {aboutUsData.team.map((member, index) => (
           <View key={index} style={styles.teamCard}>
             <Text style={styles.author}>{member.name}</Text>
-            <Text>{member.position}</Text>
-            <Text style={styles.text}>{member.bio}</Text>
+            <Text style={{textAlign:'center'}}>{member.position}</Text>
           </View>
         ))}
       </View>
@@ -234,17 +233,21 @@ const styles = StyleSheet.create({
     top: 40,
     left: 20,
     right: 210,
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    display:'flex',
+    justifyContent:'center',
    
   },
-  companyName: { fontSize: 30, fontWeight: 'bold', color: '#673ab7',marginRight:20 },
-  slogan: { fontSize: 18, color: '#673ab7', marginBottom: 10 },
+  companyName: { fontSize: 30, fontWeight: 'bold', color: '#673ab7' },
+  slogan: { fontSize: 18, color: '#673ab7', marginBottom: 10 ,margin:'auto',textAlign:'center',marginRight:'auto'},
   buttonRow: { flexDirection: 'row', gap: 10 },
   primaryButton: {
     backgroundColor: '#673ab7',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 10,
+    margin:'auto',
+    textAlign:'center'
   },
   outlinedButton: {
     borderWidth: 1,
@@ -255,7 +258,7 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: 'white' },
   outlinedText: { color: 'white' },
-  section: { padding: 20 },
+  section: { padding: 20,textAlign:'center' },
   aboutImage: { width: '100%', height: 200, marginBottom: 10 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'right' },
   text: { fontSize: 16, marginBottom: 10, textAlign: 'right' },
@@ -278,7 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   storyImage: { width: '100%', height: 100, marginBottom: 10 },
-  author: { fontWeight: 'bold' },
+  author: { fontWeight: 'bold',textAlign:'center' },
   bullet: { fontSize: 16, textAlign: 'right' },
   statsSection: { flexDirection: 'row', justifyContent: 'space-around', padding: 20 },
   statItem: { alignItems: 'center' },
@@ -289,6 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     marginVertical: 5,
     borderRadius: 10,
+    textAlign:'center'
    
   },
 });
