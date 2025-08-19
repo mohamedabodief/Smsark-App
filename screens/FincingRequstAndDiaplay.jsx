@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    textAlign: 'right',
+    textAlign: 'center',
     marginBottom: 10,
     writingDirection: 'rtl',
   },
@@ -452,6 +452,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign:'center'
   },
   imagePreviewContainer: {
     flexDirection: 'row-reverse',

@@ -820,6 +820,7 @@ position:'relative'
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+     textAlign:'center'
   },
   imagePreviewContainer: {
     flexDirection: 'row-reverse',
@@ -920,7 +921,7 @@ position:'relative'
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    textAlign: 'right',
+    textAlign: 'center',
     marginBottom: 10,
     writingDirection: 'rtl',
   },
