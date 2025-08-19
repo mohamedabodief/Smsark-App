@@ -49,6 +49,7 @@ import RequestsForAd from './screens/RequestsForAd';
 import ContactUsScreen from './screens/ContactWithUs';
 import FinancingRequestScreen from './screens/finicingRequst';
 import SplashScreenComponent from './screens/SplashScreen';
+import PaymentMethods from './screens/PaymenrMethods';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -145,6 +146,7 @@ function MainStackNavigator() {
       <Stack.Screen name="MyOrders" component={MyOrders} initialParams={{ userId }} />
       <Stack.Screen name="DisplayInfoAddDeveloperAds" component={DisplayInfoAddDeveloperAds} initialParams={{ userId }} />
       <Stack.Screen name="RequestsForAd" component={RequestsForAd} options={{ title: 'طلبات الإعلان' }} initialParams={{ userId }} />
+       <Stack.Screen name="Payment" component={PaymentMethods} options={{ title: 'الدفع' }} initialParams={{ userId }} />
     </Stack.Navigator>
   );
 }

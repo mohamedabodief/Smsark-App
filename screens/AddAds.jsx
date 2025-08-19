@@ -598,7 +598,11 @@ const AddAds = ({ navigation }) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📦 اختيار الباقة</Text>
+            <Text style={styles.sectionTitle}>📦 اختيار الباقة<TouchableOpacity onPress={()=>{
+                 navigation.navigate('MainStack', {
+        screen: 'Payment',
+      });
+            }}><Text style={{color:'blue',textDecorationLine:'underline'}}>(تعرف على تفاصيل التحويل المتاحة) </Text></TouchableOpacity></Text>
             <View style={styles.packageContainer}>
               {Object.keys(packages).map((key) => (
                 <TouchableOpacity

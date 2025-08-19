@@ -8,13 +8,16 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { AuthContext } from '../../context/AuthContext';
 import User from '../../FireBase/modelsWithOperations/User';
-import { signOut } from 'firebase/auth';
-import { auth } from '../../FireBase/firebaseConfig';
+import { auth, storage } from '../../FireBase/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function OrganizationDetailsScreen({ route }) {
   const { user } = useContext(AuthContext);
@@ -26,8 +29,7 @@ export default function OrganizationDetailsScreen({ route }) {
   const [governorate, setGovernorate] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
-
-  // Validation state for each field
+  const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({
     org_name: '',
     phone: '',
@@ -35,16 +37,44 @@ export default function OrganizationDetailsScreen({ route }) {
     governorate: '',
     city: '',
     address: '',
+    images: '',
   });
-
-  // List of organization types for the picker
   const organizationTypes = [
     { label: 'اختر نوع المنظمة', value: '' },
     { label: 'ممول عقارى', value: 'ممول عقارى' },
     { label: 'مطور عقارى', value: 'مطور عقارى' },
   ];
+  const pickImage = async () => {
+    if (images.length >= 2) {
+      Alert.alert('خطأ', 'يمكنك رفع صورتين فقط كحد أقصى');
+      return;
+    }
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('خطأ', 'تحتاج إلى منح إذن للوصول إلى المعرض');
+      return;
+    }
 
-  // Validate all fields
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const newImage = result.assets[0];
+      setImages([...images, newImage]);
+      setErrors({ ...errors, images: '' }); 
+    }
+  };
+
+  const deleteImage = (index) => {
+    const updatedImages = images.filter((_, i) => i !== index);
+    setImages(updatedImages);
+    setErrors({
+      ...errors,
+      images: updatedImages.length >= 1 ? '' : 'يجب رفع صورة واحدة على الأقل',
+    });
+  };
   const validateForm = () => {
     const newErrors = {
       org_name: org_name.trim() ? '' : 'اسم المنظمة مطلوب',
@@ -53,6 +83,7 @@ export default function OrganizationDetailsScreen({ route }) {
       governorate: governorate.trim() ? '' : 'المحافظة مطلوبة',
       city: city.trim() ? '' : 'المدينة أو القرية مطلوبة',
       address: address.trim() ? '' : 'العنوان بالتفصيل مطلوب',
+      images: images.length >= 1 ? '' : 'يجب رفع صورة واحدة على الأقل',
     };
 
     setErrors(newErrors);
@@ -65,11 +96,12 @@ export default function OrganizationDetailsScreen({ route }) {
     type_of_organization.trim() &&
     governorate.trim() &&
     city.trim() &&
-    address.trim();
+    address.trim() &&
+    images.length >= 1;
 
   const handleSave = async () => {
     if (!validateForm()) {
-      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة');
+      Alert.alert('خطأ', 'يرجى ملء جميع الحقول المطلوبة ورفع صورة واحدة على الأقل');
       return;
     }
 
@@ -85,6 +117,17 @@ export default function OrganizationDetailsScreen({ route }) {
     }
 
     try {
+      const imageUrls = [];
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const fileName = `tax_card_${uid}_${Date.now()}_${i}.jpg`;
+        const storageRef = ref(storage, `property_images/${uid}/${fileName}`);
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        imageUrls.push(downloadURL);
+      }
       const userData = new User({
         uid,
         type_of_user: 'organization',
@@ -94,22 +137,17 @@ export default function OrganizationDetailsScreen({ route }) {
         governorate,
         city,
         address,
+        tax_card_images: imageUrls, 
         profile_completed: true,
         created_at: new Date().toISOString(),
       });
 
       await userData.saveToFirestore();
-      await signOut(auth);
       Alert.alert('تم', 'تم حفظ البيانات بنجاح', [
         {
           text: 'موافق',
           onPress: () => {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              })
-            );
+          navigation.navigate('MainApp', { screen: 'MainStack', params: { screen: 'Home' } })
           },
         },
       ]);
@@ -204,6 +242,25 @@ export default function OrganizationDetailsScreen({ route }) {
           />
           {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
 
+          <Text style={styles.label}>صورة البطاقة الضريبية * (حد أدنى 1، حد أقصى 2)</Text>
+          <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+            <Text style={styles.imageButtonText}>اختر صورة</Text>
+          </TouchableOpacity>
+          <View style={styles.imageContainer}>
+            {images.map((image, index) => (
+              <View key={index} style={styles.imageWrapper}>
+                <Image source={{ uri: image.uri }} style={styles.selectedImage} />
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteImage(index)}
+                >
+                  <Ionicons name="close" size={16} color="white" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          {errors.images ? <Text style={styles.errorText}>{errors.images}</Text> : null}
+
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.backButton}
@@ -237,6 +294,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 16,
+   
+    marginTop:30
   },
   container: {
     backgroundColor: '#fff',
@@ -246,6 +305,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     elevation: 5,
+     marginBottom:80,
   },
   label: {
     marginBottom: 4,
@@ -303,5 +363,43 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  imageButton: {
+    backgroundColor: '#6E00FE',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  imageButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  selectedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
