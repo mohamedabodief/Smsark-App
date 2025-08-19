@@ -217,11 +217,11 @@ export default function AddFinancingAdFormNative({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📦 اختيار البا قة <TouchableOpacity onPress={()=>{
+          <Text style={styles.sectionTitle}>📦اختيارالباقة <TouchableOpacity onPress={()=>{
                            navigation.navigate('MainStack', {
                   screen: 'Payment',
                 });
-                      }}><Text style={{color:'blue',textDecorationLine:'underline'}}>(تعرف على تفاصيل التحويل المتاحة) </Text></TouchableOpacity></Text>
+                      }}><Text style={{color:'blue',textDecorationLine:'underline'}}>(تعرف على تفاصيل تحويل قيمة الاعلان المتاحه) </Text></TouchableOpacity></Text>
           <View style={styles.packageContainer}>
             {Object.keys(PACKAGE_INFO).map((key) => (
               <TouchableOpacity

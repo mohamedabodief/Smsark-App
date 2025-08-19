@@ -602,7 +602,7 @@ const AddAds = ({ navigation }) => {
                  navigation.navigate('MainStack', {
         screen: 'Payment',
       });
-            }}><Text style={{color:'blue',textDecorationLine:'underline'}}>(تعرف على تفاصيل التحويل المتاحة) </Text></TouchableOpacity></Text>
+            }}><Text style={{color:'blue',textDecorationLine:'underline'}}>(تعرف على تفاصيل تحويل قيمة الاعلان المتاحه) </Text></TouchableOpacity></Text>
             <View style={styles.packageContainer}>
               {Object.keys(packages).map((key) => (
                 <TouchableOpacity
