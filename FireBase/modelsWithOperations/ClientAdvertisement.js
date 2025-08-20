@@ -47,8 +47,8 @@ export default class ClientAdvertisement {
     this.username = data.username || '';
     this.address = data.address || '';
     this.building_date = data.building_date || '';
-    this.adPackage = data.adPackage || ''; // حقل الباقة الجديد
-    this.receiptUrl = data.receiptUrl || ''; // رابط صورة الإيصال
+    this.adPackage = data.adPackage || '';
+    this.receiptUrl = data.receiptUrl || '';
   }
 
   get id() {
@@ -57,6 +57,8 @@ export default class ClientAdvertisement {
 
   async save(imageFiles = [], receiptFile) {
     try {
+      console.log('بدء حفظ الإعلان مع معرف:', this.#id || 'سيتم إنشاء معرف جديد');
+
       // التحقق من الحقول الإلزامية
       const requiredFields = {
         title: this.title,
@@ -93,27 +95,36 @@ export default class ClientAdvertisement {
         throw new Error('صورة الإيصال مطلوبة');
       }
 
+      // إنشاء معرف جديد إذا لم يكن موجودًا
       const docRef = doc(db, 'ClientAdvertisements', this.#id || doc(collection(db, 'ClientAdvertisements')).id);
       this.#id = docRef.id;
+      console.log('معرف الإعلان:', this.#id);
+
+      // حفظ البيانات الأولية في Firestore
       await setDoc(docRef, this.#getAdData());
+      console.log('تم حفظ البيانات الأولية في Firestore:', this.#getAdData());
 
       // رفع الصور إلى Firebase Storage
+      let imageUrls = [];
       if (imageFiles.length > 0) {
-        const imageUrls = await this.#uploadImages(imageFiles);
+        imageUrls = await this.#uploadImages(imageFiles);
         this.images = imageUrls;
         await updateDoc(docRef, { images: imageUrls });
+        console.log('تم تحديث الصور في Firestore:', imageUrls);
       }
 
       // رفع صورة الإيصال إلى Firebase Storage
-      const receiptStorageRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      const receiptStorageRef = ref(storage, `client_ads/${this.#id}/receipt.jpg`);
+      console.log('رفع صورة الإيصال إلى:', `client_ads/${this.#id}/receipt.jpg`);
       await uploadBytes(receiptStorageRef, receiptFile);
       const receiptUrl = await getDownloadURL(receiptStorageRef);
       this.receiptUrl = receiptUrl;
       await updateDoc(docRef, { receiptUrl });
+      console.log('تم تحديث رابط صورة الإيصال في Firestore:', receiptUrl);
 
       return this.#id;
     } catch (error) {
-      console.error('Error saving advertisement:', error);
+      console.error('خطأ في حفظ الإعلان:', error);
       throw error;
     }
   }
@@ -121,6 +132,7 @@ export default class ClientAdvertisement {
   async update(updates = {}, newImageFiles = [], newReceiptFile) {
     if (!this.#id) throw new Error('الإعلان بدون ID صالح للتحديث');
     const docRef = doc(db, 'ClientAdvertisements', this.#id);
+    console.log('بدء تحديث الإعلان:', this.#id);
 
     // تحديث الحقول
     const updatedData = { ...this.#getAdData(), ...updates };
@@ -139,6 +151,7 @@ export default class ClientAdvertisement {
       const newUrls = await this.#uploadImages(newImageFiles);
       updatedData.images = newUrls;
       this.images = newUrls;
+      console.log('تم تحديث الصور:', newUrls);
     } else if (typeof updates.images === 'undefined') {
       updatedData.images = this.images;
     }
@@ -146,32 +159,40 @@ export default class ClientAdvertisement {
     // تحديث صورة الإيصال إذا تم تقديم صورة جديدة
     if (newReceiptFile) {
       await this.#deleteReceipt();
-      const receiptStorageRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      const receiptStorageRef = ref(storage, `client_ads/${this.#id}/receipt.jpg`);
+      console.log('رفع صورة الإيصال الجديدة إلى:', `client_ads/${this.#id}/receipt.jpg`);
       await uploadBytes(receiptStorageRef, newReceiptFile);
       const receiptUrl = await getDownloadURL(receiptStorageRef);
       updatedData.receiptUrl = receiptUrl;
       this.receiptUrl = receiptUrl;
+      console.log('تم تحديث رابط صورة الإيصال:', receiptUrl);
     }
 
     await updateDoc(docRef, updatedData);
+    console.log('تم تحديث الإعلان في Firestore:', updatedData);
   }
 
   async delete() {
     if (!this.#id) throw new Error('الإعلان بدون ID');
+    console.log('حذف الإعلان:', this.#id);
     await this.#deleteAllImages();
     await this.#deleteReceipt();
     await deleteDoc(doc(db, 'ClientAdvertisements', this.#id));
+    console.log('تم حذف الإعلان من Firestore');
   }
 
   async approveAd(admin_note = '') {
+    console.log('تفعيل الإعلان:', this.#id);
     await this.update({ status: 'approved', admin_note, reviewStatus: 'approved' });
   }
 
   async rejectAd(rejection_reason) {
+    console.log('رفض الإعلان:', this.#id);
     await this.update({ status: 'rejected', rejection_reason, reviewStatus: 'rejected' });
   }
 
   async returnToPending() {
+    console.log('إعادة الإعلان إلى الانتظار:', this.#id);
     await this.update({ status: 'pending', rejection_reason: '', admin_note: '', reviewStatus: 'pending' });
   }
 
@@ -182,94 +203,108 @@ export default class ClientAdvertisement {
       data.adExpiryTime = null;
       const docRef = doc(db, 'ClientAdvertisements', data.id);
       await updateDoc(docRef, { ads: false, adExpiryTime: null });
+      console.log('تم تحديث حالة انتهاء الصلاحية للإعلان:', data.id);
     }
     return new ClientAdvertisement(data);
   }
 
   static async getById(id) {
     try {
+      console.log('جلب الإعلان بمعرف:', id);
       const docRef = doc(db, 'ClientAdvertisements', id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         const data = await ClientAdvertisement.#handleExpiry({ id: snapshot.id, ...snapshot.data() });
         return data;
       }
+      console.warn('الإعلان غير موجود:', id);
       return null;
     } catch (error) {
-      console.error('Error getting advertisement by ID:', error);
+      console.error('خطأ في جلب الإعلان بمعرف:', error);
       throw error;
     }
   }
 
   static async getAll() {
     try {
+      console.log('جلب كل الإعلانات');
       const q = query(collection(db, 'ClientAdvertisements'));
       const snapshot = await getDocs(q);
       return snapshot.docs.map((doc) => new ClientAdvertisement({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('Error getting all advertisements:', error);
+      console.error('خطأ في جلب كل الإعلانات:', error);
       throw error;
     }
   }
 
   static async getByUserId(userId) {
     try {
+      console.log('جلب الإعلانات للمستخدم:', userId);
       const q = query(collection(db, 'ClientAdvertisements'), where('userId', '==', userId));
       const snapshot = await getDocs(q);
       return snapshot.docs.map((doc) => new ClientAdvertisement({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('Error getting advertisements by userId:', error);
+      console.error('خطأ في جلب الإعلانات للمستخدم:', error);
       throw error;
     }
   }
 
   static subscribeAll(callback) {
+    console.log('الاشتراك في تحديثات الإعلانات');
     const q = query(collection(db, 'ClientAdvertisements'));
     return onSnapshot(q, (snapshot) => {
       const ads = snapshot.docs.map((doc) => new ClientAdvertisement({ id: doc.id, ...doc.data() }));
       callback(ads);
     }, (error) => {
-      console.error('Error subscribing to advertisements:', error);
+      console.error('خطأ في الاشتراك في الإعلانات:', error);
     });
   }
 
   async #uploadImages(files = []) {
     const urls = [];
     const limited = files.slice(0, 4);
+    console.log('بدء رفع الصور:', limited.length);
     for (let i = 0; i < limited.length; i++) {
       const file = limited[i];
-      const storageRef = ref(storage, `client_ads/${this.userId}/${this.#id}/image_${i + 1}.jpg`);
+      const storageRef = ref(storage, `client_ads/${this.#id}/image_${i + 1}.jpg`);
       if (typeof file === 'string') {
+        console.log('استخدام رابط الصورة:', file);
         urls.push(file);
       } else {
+        console.log('رفع الصورة إلى:', `client_ads/${this.#id}/image_${i + 1}.jpg`);
         await uploadBytes(storageRef, file);
-        urls.push(await getDownloadURL(storageRef));
+        const url = await getDownloadURL(storageRef);
+        urls.push(url);
+        console.log('تم رفع الصورة:', url);
       }
     }
     return urls;
   }
 
   async #deleteAllImages() {
-    const dirRef = ref(storage, `client_ads/${this.userId}/${this.#id}`);
+    const dirRef = ref(storage, `client_ads/${this.#id}`);
     try {
+      console.log('حذف جميع الصور من:', `client_ads/${this.#id}`);
       const list = await listAll(dirRef);
       for (const fileRef of list.items) {
         if (!fileRef.name.includes('receipt.jpg')) {
           await deleteObject(fileRef);
+          console.log('تم حذف الصورة:', fileRef.name);
         }
       }
     } catch (error) {
-      console.error('Error deleting images:', error);
+      console.error('خطأ في حذف الصور:', error);
     }
   }
 
   async #deleteReceipt() {
     if (this.receiptUrl) {
-      const receiptRef = ref(storage, `client_ads/${this.userId}/${this.#id}/receipt.jpg`);
+      const receiptRef = ref(storage, `client_ads/${this.#id}/receipt.jpg`);
       try {
+        console.log('حذف صورة الإيصال من:', `client_ads/${this.#id}/receipt.jpg`);
         await deleteObject(receiptRef);
       } catch (error) {
-        console.error('Error deleting receipt:', error);
+        console.error('خطأ في حذف صورة الإيصال:', error);
       }
     }
   }

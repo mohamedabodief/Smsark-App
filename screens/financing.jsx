@@ -53,7 +53,7 @@ const FinancingPage = ({ navigation }) => { // إضافة navigation كخاصي�
       const from = parseFloat(amountFrom) || 0;
       const to = parseFloat(amountTo) || Infinity;
       const matchesAmount = !amountFrom && !amountTo ? true : adAmount >= from && adAmount <= to;
-      const matchesReviewStatus = true;
+  const matchesReviewStatus = ad.reviewStatus ? ad.reviewStatus === 'approved' : false;
 
       return matchesSearch && matchesUserType && matchesAmount && matchesReviewStatus;
     });

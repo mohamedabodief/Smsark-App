@@ -91,7 +91,7 @@ const SellPage = ({navigation}) => {
       const to = parseFloat(priceTo) || Infinity;
       const matchesPrice = !priceFrom && !priceTo ? true : adPrice >= from && adPrice <= to;
 
-      const matchesReviewStatus = true;
+    const matchesReviewStatus = ad.reviewStatus ? ad.reviewStatus === 'approved' : false;
 
       const finalResult = matchesSearch && matchesStatus && matchesType && matchesPrice && matchesReviewStatus;
       
