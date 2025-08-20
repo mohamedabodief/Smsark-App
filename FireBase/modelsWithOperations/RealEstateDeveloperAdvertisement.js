@@ -317,7 +317,7 @@ class RealEstateDeveloperAdvertisement {
     for (let i = 0; i < limited.length; i++) {
       const refPath = ref(
         storage,
-        `property_images/${this.userId}/image_${i + 1}.jpg`
+        `developer_ads/${this.userId}/image_${i + 1}.jpg`
       );
       await uploadBytes(refPath, limited[i]);
       urls.push(await getDownloadURL(refPath));
@@ -328,14 +328,14 @@ class RealEstateDeveloperAdvertisement {
   // 🔐 رفع إيصال الدفع
   async #uploadReceipt(file) {
     const storage = getStorage();
-    const refPath = ref(storage, `property_images/${this.userId}/receipt.jpg`);
+    const refPath = ref(storage, `developer_ads/${this.userId}/receipt.jpg`);
     await uploadBytes(refPath, file);
     return await getDownloadURL(refPath);
   }
 
   // 🗑️ حذف كل الصور
   async #deleteAllImages() {
-    const dirRef = ref(getStorage(), `property_images/${this.userId}`);
+    const dirRef = ref(getStorage(), `developer_ads/${this.userId}`);
     try {
       const list = await listAll(dirRef);
       for (const fileRef of list.items) await deleteObject(fileRef);
@@ -344,7 +344,7 @@ class RealEstateDeveloperAdvertisement {
 
   // 🗑️ حذف إيصال الدفع
   async #deleteReceipt() {
-    const fileRef = ref(getStorage(), `property_images/${this.userId}/receipt.jpg`);
+    const fileRef = ref(getStorage(), `developer_ads/${this.userId}/receipt.jpg`);
     try {
       await deleteObject(fileRef);
     } catch (_) {}

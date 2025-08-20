@@ -268,7 +268,7 @@ class FinancingAdvertisement {
   for (let i = 0; i < limited.length; i++) {
     const refPath = ref(
       storage,
-      `financing_ads/${this.userId}/image_${i + 1}.jpg`
+      `financing_images/${this.userId}/image_${i + 1}.jpg`
     );
     try {
       await uploadBytes(refPath, limited[i]);
@@ -282,7 +282,7 @@ class FinancingAdvertisement {
 }
   async #uploadReceipt(file) {
     const storage = getStorage();
-    const refPath = ref(storage, `financing_ads/${this.userId}/receipt.jpg`);
+    const refPath = ref(storage, `financing_images/${this.userId}/receipt.jpg`);
     await uploadBytes(refPath, file);
     const url = await getDownloadURL(refPath);
     return url;
@@ -290,7 +290,7 @@ class FinancingAdvertisement {
 
   async #deleteAllImages() {
     const storage = getStorage();
-    const dirRef = ref(storage, `financing_ads/${this.userId}`);
+    const dirRef = ref(storage, `financing_images/${this.userId}`);
     try {
       const list = await listAll(dirRef);
       await Promise.all(list.items.map((ref) => deleteObject(ref)));
@@ -300,7 +300,7 @@ class FinancingAdvertisement {
 
   async #deleteReceipt() {
     const storage = getStorage();
-    const receiptRef = ref(storage, `financing_ads/${this.userId}/receipt.jpg`);
+    const receiptRef = ref(storage, `financing_images/${this.userId}/receipt.jpg`);
     try {
       await deleteObject(receiptRef);
     } catch (error) {
